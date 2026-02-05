@@ -370,22 +370,4 @@ ORDER BY
 ```
 # 履歴
 - 2026/2/6
-  - Koyeb検討→月５００円程度かと（Nano・東京リージョン利用）、６日間体験中、
-    - [Koyeb](https://app.koyeb.com/)
-    - [Deploy](https://hadbit-fastapi.koyeb.app/dashboard)
-- 2026/2/5
-  - Dockerベースと、Uvicornスラいらない環境両立は難しいという結論、cloudflareひとまず諦め
-- 2026/2/4
-  - Cloudflareアップ調整。
-  - てこずる・・・再度アップ   
-- 2026/2/3
-  - 登録時のToastで編集画面行けるように
-  - Toastが２重でデイタのを調整
-  - URI調整、元から雑な部分だったので、２重で出たりしていた模様
-- 2026/2/2
-  - 歴の画面見やすくしてみた。
-- 2026/2/1 
-  - renderへデプロイ
-- 2026/1/24 
-  - FastAPIのBase作成完了
-  - それベースでの作成開始
+  - バージョンアップ想定で作り直し
