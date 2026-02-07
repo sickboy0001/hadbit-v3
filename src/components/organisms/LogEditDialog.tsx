@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { hadbitlog } from "@/services/hadbitlogs_service";
+import { format, add } from "date-fns";
+import { getSafeDate } from "@/lib/date-utils";
 
 interface LogEditDialogProps {
   isOpen: boolean;
@@ -20,26 +22,6 @@ interface LogEditDialogProps {
   onSave: (logId: number, date: string, comment: string) => void;
   onDelete: (logId: number) => void;
 }
-
-const getSafeDateStr = (dateVal: string | Date) => {
-  if (typeof dateVal === "string") {
-    return dateVal.endsWith("Z") ? dateVal : `${dateVal}Z`;
-  }
-  // Dateオブジェクトの場合、DBのUTC値がローカル時間として解釈されている可能性があるため
-  // 各コンポーネント(年、月、日、時...)をそのままUTCとして扱うように再構築する
-  const d = new Date(dateVal);
-  return new Date(
-    Date.UTC(
-      d.getFullYear(),
-      d.getMonth(),
-      d.getDate(),
-      d.getHours(),
-      d.getMinutes(),
-      d.getSeconds(),
-      d.getMilliseconds(),
-    ),
-  ).toISOString();
-};
 
 export function LogEditDialog({
   isOpen,
@@ -54,13 +36,9 @@ export function LogEditDialog({
   useEffect(() => {
     if (log) {
       // UTCとして解釈するために、末尾にZがない場合は付与する
-      const dateStr = getSafeDateStr(log.done_at);
-      const date = new Date(dateStr);
-      const offset = date.getTimezoneOffset() * 60000;
-      const localISOTime = new Date(date.getTime() - offset)
-        .toISOString()
-        .slice(0, 16);
-      setEditDate(localISOTime);
+      const date = getSafeDate(log.done_at);
+      // datetime-local用にフォーマット (yyyy-MM-ddThh:mm)
+      setEditDate(format(date, "yyyy-MM-dd'T'HH:mm"));
       setEditComment(log.comment || "");
     }
   }, [log, isOpen]);
@@ -72,6 +50,13 @@ export function LogEditDialog({
       onSave(log.log_id, date.toISOString().replace("Z", ""), editComment);
       onOpenChange(false);
     }
+  };
+
+  const adjustDate = (amount: number, unit: "hours" | "days") => {
+    if (!editDate) return;
+    const current = new Date(editDate);
+    const newDate = add(current, { [unit]: amount });
+    setEditDate(format(newDate, "yyyy-MM-dd'T'HH:mm"));
   };
 
   const handleDelete = () => {
@@ -100,6 +85,56 @@ export function LogEditDialog({
               value={editDate}
               onChange={(e) => setEditDate(e.target.value)}
             />
+            <div className="flex flex-wrap gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => adjustDate(-1, "days")}
+              >
+                1日前
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => adjustDate(-12, "hours")}
+              >
+                12時間前
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => adjustDate(-1, "hours")}
+              >
+                1時間前
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => adjustDate(1, "hours")}
+              >
+                1時間後
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => adjustDate(12, "hours")}
+              >
+                12時間後
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => adjustDate(1, "days")}
+              >
+                1日後
+              </Button>
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="comment">コメント</Label>

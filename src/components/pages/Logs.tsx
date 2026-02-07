@@ -17,6 +17,11 @@ import { toast } from "sonner";
 import { LogRegistrar } from "@/components/organisms/LogRegistrar";
 import { LogHistory } from "@/components/organisms/LogHistory";
 import { LogEditDialog } from "@/components/organisms/LogEditDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LogDateGrid } from "@/components/organisms/LogDateGrid";
+import { LogCalendar } from "@/components/organisms/LogCalendar";
+import { LogHeatmap } from "@/components/organisms/LogHeatmap";
+import { Button } from "@/components/ui/button";
 
 interface LogsProps {
   userId: string;
@@ -29,6 +34,9 @@ export default function Logs({ userId }: LogsProps) {
 
   const [selectedLog, setSelectedLog] = useState<hadbitlog | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">(
+    "all",
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,6 +129,16 @@ export default function Logs({ userId }: LogsProps) {
     deleteLog(logId);
   };
 
+  const filteredLogs =
+    selectedCategoryId === "all"
+      ? logs
+      : logs.filter((l) => l.category_id === selectedCategoryId);
+
+  const displayCategories =
+    selectedCategoryId === "all"
+      ? categories
+      : categories.filter((c) => c.id === selectedCategoryId);
+
   return (
     <div className="w-full space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <header>
@@ -131,7 +149,50 @@ export default function Logs({ userId }: LogsProps) {
       </header>
 
       <LogRegistrar categories={categories} onAddLog={addLog} />
-      <LogHistory logs={logs} onLogClick={openEditDialog} />
+
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedCategoryId === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategoryId("all")}
+          >
+            全て
+          </Button>
+          {categories.map((cat) => (
+            <Button
+              key={cat.id}
+              variant={selectedCategoryId === cat.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategoryId(cat.id)}
+            >
+              {cat.name}
+            </Button>
+          ))}
+        </div>
+
+        <Tabs defaultValue="history" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="history">記録</TabsTrigger>
+            <TabsTrigger value="dategrid">日付</TabsTrigger>
+            <TabsTrigger value="calendar">カレンダー</TabsTrigger>
+            <TabsTrigger value="heatmap">ヒートマップ</TabsTrigger>
+          </TabsList>
+          <TabsContent value="history" className="mt-4">
+            <LogHistory logs={filteredLogs} onLogClick={openEditDialog} />
+          </TabsContent>
+          <TabsContent value="dategrid" className="mt-4">
+            <LogDateGrid logs={filteredLogs} categories={displayCategories} />
+          </TabsContent>
+          <TabsContent value="calendar" className="mt-4">
+            <LogCalendar logs={filteredLogs} onLogClick={openEditDialog} />
+          </TabsContent>
+          <TabsContent value="heatmap" className="mt-4">
+            <LogHeatmap logs={filteredLogs} />
+          </TabsContent>
+        </Tabs>
+      </div>
+
       <LogEditDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
