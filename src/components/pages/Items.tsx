@@ -1,136 +1,531 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-    MOCK_CATEGORIES,
-    MOCK_ITEMS,
-    MOCK_TREES,
-} from "@/lib/mock-data";
-import { Card, CardContent } from "@/components/ui/card";
+  getHadbitItems,
+  CategoryNode,
+  ItemNode,
+  updateCategoryAction,
+  updateItemAction,
+  updateCategoryOrderAction,
+  updateItemOrderAction,
+  deleteItemAction,
+  createCategoryAction,
+  createItemAction,
+  deleteCategoryAction,
+} from "@/services/hadbititems_service";
+import { HadbitItemRow } from "@/components/molecules/HadbitItemRow";
+import { HadbitCategoryCard } from "@/components/organisms/HadbitCategoryCard";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
-    ChevronDown,
-    ChevronRight,
-    GripVertical,
-    Plus,
-    Pencil,
-    Trash2,
-    Eye,
-    FolderOpen
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverEvent,
+  UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
-export default function Items() {
-    const [expandedCategories, setExpandedCategories] = useState<number[]>(MOCK_CATEGORIES.map(c => c.id));
+interface ItemsProps {
+  userId: string;
+}
 
-    const toggleCategory = (id: number) => {
-        setExpandedCategories(prev =>
-            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-        );
+// --- Main Component ---
+
+export default function Items({ userId }: ItemsProps) {
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryNode | null>(
+    null,
+  );
+  const [editingItem, setEditingItem] = useState<ItemNode | null>(null);
+  const [tempName, setTempName] = useState("");
+  const [tempShortName, setTempShortName] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ItemNode | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryNode | null>(
+    null,
+  );
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [creatingItemCategoryId, setCreatingItemCategoryId] = useState<
+    number | null
+  >(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getHadbitItems(userId);
+        setCategories(data);
+        setExpandedCategories(data.map((c) => c.id));
+      } catch (e) {
+        console.error("Failed to fetch items", e);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchData();
+  }, [userId]);
 
-    const getSubItems = (parentId: number) => {
-        const itemIds = MOCK_TREES
-            .filter(t => t.parent_id === parentId)
-            .sort((a, b) => a.order_no - b.order_no)
-            .map(t => t.item_id);
-
-        return MOCK_ITEMS.filter(item => itemIds.includes(item.id));
-    };
-
-    return (
-        <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-            <header className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">項目管理</h1>
-                    <p className="text-muted-foreground mt-1">カテゴリと習慣の階層構造を編集します。</p>
-                </div>
-                <Button className="gap-2 shadow-lg shadow-primary/20">
-                    <Plus className="h-4 w-4" />
-                    新規カテゴリ
-                </Button>
-            </header>
-
-            <div className="space-y-4">
-                {MOCK_CATEGORIES.map((category) => {
-                    const isExpanded = expandedCategories.includes(category.id);
-                    const subItems = getSubItems(category.id);
-
-                    return (
-                        <Card key={category.id} className="overflow-hidden border-none shadow-md bg-card/40 backdrop-blur-sm">
-                            <div
-                                className={cn(
-                                    "flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors group",
-                                    isExpanded && "border-b border-muted/50"
-                                )}
-                                onClick={() => toggleCategory(category.id)}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing p-1">
-                                        <GripVertical className="h-5 w-5" />
-                                    </div>
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                        <FolderOpen className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <span className="font-bold text-lg">{category.name}</span>
-                                        <span className="ml-3 text-xs text-muted-foreground font-mono">
-                                            ID: {category.id}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    {isExpanded ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-                                </div>
-                            </div>
-
-                            {isExpanded && (
-                                <CardContent className="p-0 bg-muted/10">
-                                    <div className="divide-y divide-muted/30">
-                                        {subItems.map((item) => (
-                                            <div key={item.id} className="flex items-center justify-between p-3 pl-12 hover:bg-muted/50 group transition-all">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="text-muted-foreground/50 hover:text-foreground cursor-grab p-1">
-                                                        <GripVertical className="h-4 w-4" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-medium">{item.name}</div>
-                                                        {item.short_name && (
-                                                            <div className="text-xs text-muted-foreground">表示名: {item.short_name}</div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-4">
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {subItems.length === 0 && (
-                                            <div className="p-8 text-center text-sm text-muted-foreground italic">
-                                                項目が登録されていません。
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            )}
-                        </Card>
-                    );
-                })}
-            </div>
-        </div>
+  const toggleCategory = (id: number) => {
+    setExpandedCategories((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
+  };
+
+  const handleCreateCategory = () => {
+    setEditingCategory(null);
+    setEditingItem(null);
+    setTempName("");
+    setTempShortName("");
+    setIsCreatingCategory(true);
+    setCreatingItemCategoryId(null);
+    setEditModalOpen(true);
+  };
+
+  const handleEditCategory = (category: CategoryNode) => {
+    setEditingCategory(category);
+    setEditingItem(null);
+    setTempName(category.name);
+    setTempShortName("");
+    setIsCreatingCategory(false);
+    setCreatingItemCategoryId(null);
+    setEditModalOpen(true);
+  };
+
+  const handleCreateItem = (categoryId: number) => {
+    setEditingCategory(null);
+    setEditingItem(null);
+    setTempName("");
+    setTempShortName("");
+    setIsCreatingCategory(false);
+    setCreatingItemCategoryId(categoryId);
+    setEditModalOpen(true);
+  };
+
+  const handleEditItem = (item: ItemNode) => {
+    setEditingItem(item);
+    setEditingCategory(null);
+    setTempName(item.name);
+    setTempShortName(item.short_name || "");
+    setIsCreatingCategory(false);
+    setCreatingItemCategoryId(null);
+    setEditModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      if (isCreatingCategory) {
+        const res = await createCategoryAction(userId, tempName);
+        if (res.success && res.data) {
+          setCategories([
+            ...categories,
+            { id: res.data.id, name: res.data.name, items: [] },
+          ]);
+          setExpandedCategories((prev) => [...prev, res.data.id]);
+          toast.success("カテゴリを作成しました");
+        }
+      } else if (creatingItemCategoryId !== null) {
+        const res = await createItemAction(
+          userId,
+          creatingItemCategoryId,
+          tempName,
+          tempShortName,
+        );
+        if (res.success && res.data) {
+          setCategories((prev) =>
+            prev.map((cat) => {
+              if (cat.id === creatingItemCategoryId) {
+                return {
+                  ...cat,
+                  items: [...cat.items, res.data],
+                };
+              }
+              return cat;
+            }),
+          );
+          toast.success("項目を作成しました");
+        }
+      } else if (editingCategory) {
+        await updateCategoryAction(editingCategory.id, tempName);
+        // ローカルstateの更新
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === editingCategory.id ? { ...cat, name: tempName } : cat,
+          ),
+        );
+        toast.success("カテゴリを更新しました");
+      } else if (editingItem) {
+        await updateItemAction(editingItem.id, tempName, tempShortName);
+        // ローカルstateの更新
+        setCategories((prev) =>
+          prev.map((cat) => ({
+            ...cat,
+            items: cat.items.map((item) =>
+              item.id === editingItem.id
+                ? { ...item, name: tempName, short_name: tempShortName }
+                : item,
+            ),
+          })),
+        );
+        toast.success("項目を更新しました");
+      }
+      setEditModalOpen(false);
+    } catch (error) {
+      toast.error("保存に失敗しました");
+      console.error(error);
+    }
+  };
+
+  const handleDeleteClick = (item: ItemNode) => {
+    setItemToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCategoryClick = (category: CategoryNode) => {
+    setCategoryToDelete(category);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (itemToDelete) {
+        await deleteItemAction(itemToDelete.id);
+        // ローカルstateの更新（全カテゴリから該当アイテムを削除）
+        setCategories((prev) =>
+          prev.map((cat) => ({
+            ...cat,
+            items: cat.items.filter((i) => i.id !== itemToDelete.id),
+          })),
+        );
+        toast.success("項目を削除しました");
+      } else if (categoryToDelete) {
+        await deleteCategoryAction(categoryToDelete.id);
+        setCategories((prev) =>
+          prev.filter((c) => c.id !== categoryToDelete.id),
+        );
+        toast.success("カテゴリを削除しました");
+      }
+    } catch (error) {
+      toast.error("削除に失敗しました");
+    } finally {
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+      setCategoryToDelete(null);
+    }
+  };
+
+  const findContainer = (id: UniqueIdentifier) => {
+    const idStr = String(id);
+    if (idStr.startsWith("cat-")) {
+      const catId = parseInt(idStr.replace("cat-", ""));
+      return categories.find((c) => c.id === catId);
+    }
+    return categories.find((c) =>
+      c.items.some((i) => `item-${i.id}` === idStr),
+    );
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    // Only handle item dragging
+    if (!activeId.startsWith("item-")) return;
+
+    const activeContainer = findContainer(active.id);
+    const overContainer = findContainer(over.id);
+
+    if (
+      !activeContainer ||
+      !overContainer ||
+      activeContainer.id === overContainer.id
+    ) {
+      return;
+    }
+
+    setCategories((prev) => {
+      const activeItems = activeContainer.items;
+      const overItems = overContainer.items;
+      const activeIndex = activeItems.findIndex(
+        (i) => `item-${i.id}` === activeId,
+      );
+      const overIndex = overItems.findIndex((i) => `item-${i.id}` === overId);
+
+      let newIndex;
+      if (overId.startsWith("cat-")) {
+        newIndex = overItems.length + 1;
+      } else {
+        const isBelowOverItem =
+          over &&
+          active.rect.current.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height;
+
+        const modifier = isBelowOverItem ? 1 : 0;
+        newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
+      }
+
+      return prev.map((c) => {
+        if (c.id === activeContainer.id) {
+          return {
+            ...c,
+            items: activeItems.filter(
+              (item) => item.id !== activeItems[activeIndex].id,
+            ),
+          };
+        } else if (c.id === overContainer.id) {
+          return {
+            ...c,
+            items: [
+              ...overItems.slice(0, newIndex),
+              activeItems[activeIndex],
+              ...overItems.slice(newIndex, overItems.length),
+            ],
+          };
+        } else {
+          return c;
+        }
+      });
+    });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Category Reordering
+    if (activeId.startsWith("cat-") && overId.startsWith("cat-")) {
+      if (activeId !== overId) {
+        const oldIndex = categories.findIndex(
+          (c) => `cat-${c.id}` === activeId,
+        );
+        const newIndex = categories.findIndex((c) => `cat-${c.id}` === overId);
+        const newItems = arrayMove(categories, oldIndex, newIndex);
+
+        setCategories(newItems);
+
+        // サーバーへ順序を保存
+        updateCategoryOrderAction(newItems.map((c) => c.id)).catch(() => {
+          toast.error("カテゴリの並び順保存に失敗しました");
+        });
+      }
+    }
+
+    // Item Reordering (within same category)
+    if (activeId.startsWith("item-")) {
+      const activeContainer = findContainer(active.id);
+      const overContainer = findContainer(over.id);
+
+      if (
+        activeContainer &&
+        overContainer &&
+        activeContainer.id === overContainer.id
+      ) {
+        const activeIndex = activeContainer.items.findIndex(
+          (i) => `item-${i.id}` === activeId,
+        );
+        const overIndex = overId.startsWith("cat-")
+          ? activeContainer.items.length - 1
+          : activeContainer.items.findIndex((i) => `item-${i.id}` === overId);
+
+        let newItems = activeContainer.items;
+
+        if (activeIndex !== overIndex) {
+          newItems = arrayMove(activeContainer.items, activeIndex, overIndex);
+          setCategories((prev) =>
+            prev.map((c) =>
+              c.id === activeContainer.id ? { ...c, items: newItems } : c,
+            ),
+          );
+        }
+
+        // サーバーへ順序を保存 (カテゴリ移動があった場合もここで保存される)
+        updateItemOrderAction(
+          activeContainer.id,
+          newItems.map((i) => i.id),
+        ).catch(() => {
+          toast.error("項目の並び順保存に失敗しました");
+        });
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 w-1/2 mx-auto">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">項目管理</h1>
+          <p className="text-muted-foreground mt-1">
+            カテゴリと習慣の階層構造を編集します。
+          </p>
+        </div>
+        <Button
+          className="gap-2 shadow-lg shadow-primary/20"
+          onClick={handleCreateCategory}
+        >
+          <Plus className="h-4 w-4" />
+          新規カテゴリ
+        </Button>
+      </header>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+      >
+        <div className="space-y-2">
+          <SortableContext
+            items={categories.map((c) => `cat-${c.id}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {categories.map((category) => (
+              <HadbitCategoryCard
+                key={category.id}
+                category={category}
+                isExpanded={expandedCategories.includes(category.id)}
+                onToggle={() => toggleCategory(category.id)}
+                onEdit={handleEditCategory}
+                onAddItem={handleCreateItem}
+                onDelete={handleDeleteCategoryClick}
+              >
+                <SortableContext
+                  items={category.items.map((i) => `item-${i.id}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="divide-y divide-muted/30">
+                    {category.items.map((item) => (
+                      <HadbitItemRow
+                        key={item.id}
+                        item={item}
+                        onEdit={handleEditItem}
+                        onDelete={handleDeleteClick}
+                      />
+                    ))}
+                    {category.items.length === 0 && (
+                      <div className="p-8 text-center text-sm text-muted-foreground italic">
+                        項目が登録されていません。
+                      </div>
+                    )}
+                  </div>
+                </SortableContext>
+              </HadbitCategoryCard>
+            ))}
+          </SortableContext>
+        </div>
+      </DndContext>
+
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isCreatingCategory
+                ? "新規カテゴリ作成"
+                : creatingItemCategoryId !== null
+                  ? "新規項目作成"
+                  : editingCategory
+                    ? "カテゴリ編集"
+                    : "項目編集"}
+            </DialogTitle>
+            <DialogDescription>
+              {isCreatingCategory ||
+              editingCategory ||
+              creatingItemCategoryId !== null
+                ? "カテゴリの名称を変更します。"
+                : "項目の詳細を編集します。"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                名称
+              </Label>
+              <Input
+                id="name"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            {(editingItem || creatingItemCategoryId !== null) && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="short_name" className="text-right">
+                  表示名
+                </Label>
+                <Input
+                  id="short_name"
+                  value={tempShortName}
+                  onChange={(e) => setTempShortName(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleSave}>
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>項目の削除</DialogTitle>
+            <DialogDescription>
+              本当に「{itemToDelete?.name || categoryToDelete?.name}
+              」を削除しますか？この操作は取り消せません。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

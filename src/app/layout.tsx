@@ -18,10 +18,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <body
+        className={`${inter.className} bg-background text-foreground antialiased`}
+      >
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full">
+          <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 mx-auto w-full">
             {children}
           </main>
           <MobileNav />

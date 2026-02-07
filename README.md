@@ -398,5 +398,10 @@ export default async function Page() {
 Supabaseの設定画面にある Transaction mode (ポート 6543) のURLを使ってください。Next.jsはサーバーレス環境（Vercelなど）で動くため、接続数が急増してもパンクしないようにするためです。
 
 # 履歴
+- 2026/2/7
+  - AntiGravity→Vscodeで作成
+  - 残ダッシュボード、記録参照の機能について諸々・・・
 - 2026/2/6
   - バージョンアップ想定で作り直し
+
+

@@ -25,7 +25,7 @@ export default function StartPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-24 px-6 text-center space-y-8 bg-gradient-to-b from-background to-muted/50">
+        <section className="py-24 px-6 text-center space-y-8 bg-linear-to-b from-background to-muted/50">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tighter max-w-3xl mx-auto">
             習慣を記録し、
             <br className="hidden sm:inline" />
