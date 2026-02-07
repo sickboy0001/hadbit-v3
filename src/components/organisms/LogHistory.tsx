@@ -13,12 +13,17 @@ interface LogHistoryProps {
   onLogClick: (log: hadbitlog) => void;
 }
 
+// UTCの日時データをJST（日本時間）に変換して表示するためのヘルパー
+const toJST = (date: Date) => {
+  return new Date(date.getTime() + (date.getTimezoneOffset() + 540) * 60000);
+};
+
 export function LogHistory({ logs, onLogClick }: LogHistoryProps) {
   const groupedLogs = useMemo(() => {
     const groups: { date: string; logs: hadbitlog[] }[] = [];
     logs.forEach((log) => {
       // UTCとして解釈するために、末尾にZがない場合は付与する
-      const dateObj = getSafeDate(log.done_at);
+      const dateObj = toJST(getSafeDate(log.done_at));
       const date = format(dateObj, "yyyy/MM/dd(EEE)", { locale: ja });
       let group = groups.find((g) => g.date === date);
       if (!group) {
@@ -82,7 +87,7 @@ export function LogHistory({ logs, onLogClick }: LogHistoryProps) {
                       </span>
                       <div className="flex items-center gap-1">
                         <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                          {format(getSafeDate(log.done_at), "HH:mm")}
+                          {format(toJST(getSafeDate(log.done_at)), "HH:mm")}
                         </span>
                       </div>
                     </div>
