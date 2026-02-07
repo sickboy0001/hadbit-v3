@@ -402,7 +402,6 @@ Supabaseの設定画面にある Transaction mode (ポート 6543) のURLを使�
   - [デプロイ](https://hadbit-v3.vercel.app/hadbit/logs)
   - AntiGravity→Vscodeで作成
   - 残ダッシュボード、記録参照の機能について諸々・・・ 
-  - テスト
 - 2026/2/6
   - バージョンアップ想定で作り直し
 
