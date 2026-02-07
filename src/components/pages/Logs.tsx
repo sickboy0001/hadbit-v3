@@ -55,7 +55,9 @@ export default function Logs({ userId }: LogsProps) {
   };
 
   const addLog = async (item: ItemNode) => {
-    const now = new Date().toISOString();
+    // DBに保存する際、タイムゾーン変換による意図しない時間のズレを防ぐため、
+    // UTC時刻の文字列表現から 'Z' を除去して送信し、数値をそのまま保存させる。
+    const now = new Date().toISOString().replace("Z", "");
     try {
       const res = await createHadbitLog(userId, item.id, now);
       if (res.success && res.data && res.data.length > 0) {

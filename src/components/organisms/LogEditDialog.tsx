@@ -68,7 +68,8 @@ export function LogEditDialog({
   const handleSave = () => {
     if (log) {
       const date = new Date(editDate);
-      onSave(log.log_id, date.toISOString(), editComment);
+      // DB保存用に Z を除去して UTC 数値をそのまま送る
+      onSave(log.log_id, date.toISOString().replace("Z", ""), editComment);
       onOpenChange(false);
     }
   };
