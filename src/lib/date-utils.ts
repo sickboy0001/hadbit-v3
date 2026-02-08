@@ -15,6 +15,10 @@ export const getSafeDate = (dateInput: string | Date): Date => {
 
 // UTCの日時データをJST（日本時間）に変換して表示するためのヘルパー
 export const toJST = (date: Date): Date => {
-  // DBから取得した時刻（UTC）をJSTとして表示するために、一律で9時間進める
-  return new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  // ローカル開発環境（development）の場合のみ、DBの時刻がJSTとして解釈されてしまっているため、+9時間して補正する
+  if (process.env.NODE_ENV === "development") {
+    return new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  }
+  // 本番環境（Vercel/production）ではUTCとして正しく扱われているため、補正不要
+  return date;
 };
