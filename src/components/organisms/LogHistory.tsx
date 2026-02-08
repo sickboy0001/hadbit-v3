@@ -23,6 +23,18 @@ const toJST = (date: Date) => {
   return new Date(date.getTime() + (date.getTimezoneOffset() + 540) * 60000);
 };
 
+// ログの日時文字列をパースするヘルパー
+// DBからタイムゾーンなしのJST時刻文字列が返ってくる場合に対応
+const parseLogDate = (dateInput: string | Date) => {
+  if (dateInput instanceof Date) return dateInput;
+  let str = dateInput.replace(" ", "T");
+  // 末尾が数字（タイムゾーン指定がない）場合はJST(+09:00)として扱う
+  if (/\d$/.test(str)) {
+    str += "+09:00";
+  }
+  return new Date(str);
+};
+
 export function LogHistory({
   userId,
   categories,
@@ -93,7 +105,7 @@ export function LogHistory({
       ) {
         return false;
       }
-      const logDate = toJST(getSafeDate(l.done_at));
+      const logDate = toJST(parseLogDate(l.done_at));
       const target = new Date(
         logDate.getFullYear(),
         logDate.getMonth(),
@@ -108,7 +120,7 @@ export function LogHistory({
     const groups: { date: string; dateObj: Date; logs: hadbitlog[] }[] = [];
     filteredLogs.forEach((log) => {
       // UTCとして解釈するために、末尾にZがない場合は付与する
-      const dateObj = toJST(getSafeDate(log.done_at));
+      const dateObj = toJST(parseLogDate(log.done_at));
       const date = format(dateObj, "yyyy/MM/dd(EEE)", { locale: ja });
       let group = groups.find((g) => g.date === date);
       if (!group) {
@@ -255,7 +267,7 @@ export function LogHistory({
                       </span>
                       <div className="flex items-center gap-1">
                         <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                          {format(toJST(getSafeDate(log.done_at)), "HH:mm")}
+                          {format(toJST(parseLogDate(log.done_at)), "HH:mm")}
                         </span>
                       </div>
                     </div>

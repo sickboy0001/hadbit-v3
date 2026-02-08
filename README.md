@@ -1,19 +1,20 @@
 
 - [hadbit-v3](#hadbit-v3)
   - [🚀 プロジェクト概要](#-プロジェクト概要)
+    - [目的（Aim）：狙い](#目的aim狙い)
+    - [概要（Overview）：](#概要overview)
   - [🛠 技術スタックと選定理由](#-技術スタックと選定理由)
   - [📋 基本仕様](#-基本仕様)
     - [1. 開発・実行環境](#1-開発実行環境)
     - [2. フロントエンド](#2-フロントエンド)
     - [3. バックエンド \& BaaS](#3-バックエンド--baas)
   - [📂 ディレクトリ構成](#-ディレクトリ構成)
-  - [🚢 デプロイフロー](#-デプロイフロー)
   - [要件](#要件)
     - [非機能要件](#非機能要件)
     - [スタート画面](#スタート画面)
-    - [登録画面](#登録画面)
-    - [マスタ編集画面](#マスタ編集画面)
-    - [統計画面](#統計画面)
+    - [登録画面 Logs](#登録画面-logs)
+    - [マスタ編集画面 Items](#マスタ編集画面-items)
+    - [統計画面 Analystic](#統計画面-analystic)
   - [画面一覧とURL設計](#画面一覧とurl設計)
   - [各画面の責務](#各画面の責務)
     - [1. スタート画面 (`/dashboard`)](#1-スタート画面-dashboard)
@@ -21,10 +22,9 @@
     - [3. マスタ編集画面 (`/Items`)](#3-マスタ編集画面-items)
     - [4. 統計画面 (`/analytics`)](#4-統計画面-analytics)
   - [論理構成図（テーブル定義）](#論理構成図テーブル定義)
-    - [1. Users (auth.users / Supabase既存)](#1-users-authusers--supabase既存)
-    - [2. hadbit\_items (習慣項目マスタ)](#2-hadbit_items-習慣項目マスタ)
-    - [3. hadbit\_trees (習慣項目階層管理)](#3-hadbit_trees-習慣項目階層管理)
-    - [4. hadbit\_logs (実施記録)](#4-hadbit_logs-実施記録)
+    - [1. hadbit\_items (習慣項目マスタ)](#1-hadbit_items-習慣項目マスタ)
+    - [2. hadbit\_trees (習慣項目階層管理)](#2-hadbit_trees-習慣項目階層管理)
+    - [3. hadbit\_logs (実施記録)](#3-hadbit_logs-実施記録)
     - [構成のポイント](#構成のポイント)
   - [DDL](#ddl)
 - [クエリ頑張る系](#クエリ頑張る系)
@@ -34,18 +34,34 @@
 
 # hadbit-v3
 
-React NextJS Vercel Supabaseでの構成想定
+日々の習慣すべき項目を**hadbit**として、それを記録し続けるためのアプリ
+
+
+* [Github](https://github.com/sickboy0001/hadbit-v3)
+* [Vercel](https://hadbit-v3.vercel.app/dashboard)
 
 
 ## 🚀 プロジェクト概要
 
-クリーンなディレクトリ構成とコンテナ化により、迅速な開発からデプロイまでをスムーズに行える構成になっています。
+* 個人個人で習慣化すべき項目を分類化、リストアップして、
+* 習慣化はやりたくても、やりきれないもの・・・成果を含めて記録できる状態を目指すサービスです。
+  * 最初はNotionでそれっぽい物作ってたけど、操作感や実施することのモチベーション上げるための画面作れなくて自分で作成した次第
+* React NextJS Vercel Supabaseでの構成想定
+
+
+### 目的（Aim）：狙い
+* 「習慣をつける」はなかなか実践したくてもできないものそれを支援するためのツール
+
+### 概要（Overview）：
+
+* Dashboard：現在の状況の表示、ログイン後のスタート画面
+* Items:習慣化したい項目を登録
+* Logs：実際に記録するための画面、記録した結果も確認可能
+* Analytics：分析、各項目の実際の常用の確認
 
 ---
 
 ## 🛠 技術スタックと選定理由
-
-base:PFXDGRSbase
 
 |技術要素|役割・選定理由|
 |-|-|
@@ -76,64 +92,47 @@ base:PFXDGRSbase
 
 * **DB/Auth**: Supabase (PostgreSQL / Supabase Auth)
 
-* [Github](https://github.com/sickboy0001/hadbit-v3)
-* [Vercel](https://hadbit-v3.vercel.app/dashboard)
 ---
 
 ## 📂 ディレクトリ構成
 
-- `src/app`: 画面（Pages）およびルートハンドラー
-  - globals.css
-  - layout.tsx
-  - pages.tsx
-  - `(auth)`: 認証周りの処理
-    - login/:ログイン処理
-    - signup/:新規でユーザー登録の登録用の画面
-  - `(user)`: 認証済みのページ
-    - dashboard/:ダッシュボード
-      - page.tsx: 入り口のサーバーコンポーネント
-    - logs/:習慣化の記録の確認
-      - page.tsx: 入り口のサーバーコンポーネント
-    - items/:習慣化のマスタの確認
-      - page.tsx: 入り口のサーバーコンポーネント
-- `src/components/`: 再利用可能なUIコンポーネント
-  - auth/:認証周り
-    - login:ログイン処理
-    - signup:新規でユーザー登録の登録用の画面
-  - layout/:Atomicデザインのlayoutでのコンポーネント
-  - organisms/:Atomicデザインのorganismsでのコンポーネント
-  - pages/:各ページから呼び出させる場所
-  - ui/:shaduiのコンポーネントの保存
-- `src/constants/:　定数の情報をもつ。解説コメントなども
-- `src/service/`: ビジネスロジック
-- `src/lib/`: Supabaseクライアントなどの共通ロジック
-  - util.ts
-  - utilNumber.ts
-  - utilDate.ts
-  - supabase/:Supabase周り
-    - auth.ts
-    - db.ts
-- `src/middleware.ts`: 認証状態に基づいたリダイレクト制御
 
+```text
+src/
+├── app/                        # 画面（Pages）およびルートハンドラー
+│   ├── (auth)/                 # 認証周りの処理グループ
+│   │   ├── login/              # ログイン処理・画面
+│   │   └── signup/             # 新規ユーザー登録用の画面
+│   ├── (user)/                 # 認証済みページグループ
+│   │   ├── dashboard/          # ダッシュボード
+│   │   │   └── page.tsx        # 入り口のサーバーコンポーネント
+│   │   ├── logs/               # 習慣化の記録の確認
+│   │   │   └── page.tsx        # 入り口のサーバーコンポーネント
+│   │   └── items/              # 習慣化のマスタの確認
+│   │       └── page.tsx        # 入り口のサーバーコンポーネント
+│   ├── globals.css             # グローバルスタイル
+│   ├── layout.tsx              # ルートレイアウト
+│   └── page.tsx                # トップページ
+├── components/                 # 再利用可能なUIコンポーネント
+│   ├── auth/                   # 認証周りのコンポーネント
+│   │   ├── login/              # ログイン関連部品
+│   │   └── signup/             # 新規登録関連部品
+│   ├── layout/                 # Atomicデザイン：layoutコンポーネント
+│   ├── organisms/              # Atomicデザイン：organismsコンポーネント
+│   ├── pages/                  # 各ページから呼び出されるページ単位のコンポーネント
+│   └── ui/                     # shadcn/ui等の基本コンポーネント
+├── constants/                  # 定数情報、解説コメントなど
+├── service/                    # ビジネスロジック（データ取得・集計関数など）
+├── lib/                        # 共通ロジック
+│   ├── supabase/               # Supabase関連
+│   │   ├── auth.ts             # 認証ロジック
+│   │   └── db.ts               # データベース操作
+│   ├── util.ts                 # 汎用ユーティリティ
+│   ├── utilNumber.ts           # 数値操作ユーティリティ
+│   └── utilDate.ts             # 日付操作ユーティリティ
+└── middleware.ts               # 認証状態に基づいたリダイレクト制御
 
----
-以下未使用
-    - client.ts: createBrowserClient
-    - supbabase.ts:reateClient(supabaseUrl, supabaseAnonKey);
-    - supbabaseadmin:createxxxxAdminClient
-    - supabaseServer:supabaseAnonKeyからユーザーゲット
-
-
-## 🚢 デプロイフロー
-
-Koyeb/Renderを利用したCI/CDが自動化されています。
-
-1. **GitHubへPush**: `main` ブランチへコードをプッシュ。
-2. **ビルド**: Renderがリポジトリの `Dockerfile` を検知し、Dockerイメージをビルド。
-3. **自動デプロイ**: ビルド成功後、Web Serviceとして自動デプロイ。
-4. **環境変数管理**: Render Dashboardおよびローカルの `.env` で秘匿情報を管理。
-
----
+```
 
 ## 要件
 ### 非機能要件
@@ -144,7 +143,7 @@ Koyeb/Renderを利用したCI/CDが自動化されています。
 ###  スタート画面
 - 最初にログインしたときに見える画面です。
 - ここから「登録画面」や「マスタ編集画面」「統計画面」に遷移する
-### 登録画面
+### 登録画面 Logs
 - ログイン後利用可能
 - 登録された習慣化マスタから画面を作成して、習慣化の記録を残す
 - 例えば、マスタとして運動→階段利用があったときには、階段利用のボタンを準備
@@ -154,7 +153,7 @@ Koyeb/Renderを利用したCI/CDが自動化されています。
 - **取り消し機能:** 間違えてボタンを押した場合、その場で削除・修正は可能。トーストで表示、編集、削除を展開できる
 - **日付の概念:** デフォルトは今日だが、編集画面で日時は変更できることとする
 
-###  マスタ編集画面
+###  マスタ編集画面 Items
 - 習慣化したい項目について登録する
 - マスタ自体は階層化機能をもつ
 - 基本はタイトル、項目の親子関係をもつ
@@ -162,35 +161,31 @@ Koyeb/Renderを利用したCI/CDが自動化されています。
 - **階層の深さ:** 親→子の2階層固定
 - **マスタの削除・変更:** 既に記録があるマスタ（例：「ランニング」）を削除したり名前を変えたりした場合、過去の記録は更新された状態で見える
  
-### 統計画面
+### 統計画面 Analystic
 - 何をどの程度習慣化して実施した見れる画面
 - 指定された項目、カテゴリーを、日ごと、週ごと、月ごとにどれだけ実施したか見れる画面にする
 - カレンダー形式のヒートマップ、週間の棒グラフでの展開が可能
-
-
 
 ## 画面一覧とURL設計
 
 | 画面名 | URL (Path) | 画面名（システム上の識別子） | 説明 |
 | --- | --- | --- | --- |
-| **スタート画面** | `/dashboard` | `Dashboard` | ログイン後の拠点となるポータル。各機能へのハブ。 |
+| **スタート画面** | `/dashboard` | `Dashboard` | ログイン後の拠点となるポータル。各機能へのハブ |
 | **登録画面** | `/hadbit/logs` | `Logs` | 習慣化マスタをボタン表示し、実績を記録するメイン画面。 |
 | **マスタ編集画面** | `/hadbit/Items` | `Items` | カテゴリや項目の階層構造、表示順を設定する画面。 |
 | **統計画面** | `/hadbit/analytics` | `Analytics` | 日・週・月ごとの実施状況を可視化する画面。 |
-| **（詳細・編集）** | `/hadbit/logs/:id` | `LogEdit` | 登録した記録の日時修正や削除を行うための詳細画面。 |
 
 ## 各画面の責務
 
 ### 1. スタート画面 (`/dashboard`)
 
-* **導線:** `/records`, `/HadbitSettings`, `/analytics` への大きなナビゲーションボタンを配置。
+* **導線:** `/Logs`, `/Items`, `/analytics` への大きなナビゲーションボタンを配置。
 * **状態:** ログインしていない場合は `/login` へリダイレクトする制御が必要です。
 
 ### 2. 登録画面 (`/logs`)
 
 * **動的生成:** `/Items` で定義された「表示順」に従ってボタンを配置します。
 * **履歴表示:** 画面下部にその日の履歴一覧を表示。
-* 各履歴の「編集」ボタンから `/records/logs/:id` へ遷移、またはモーダルで対応。
 
 ### 3. マスタ編集画面 (`/Items`)
 
@@ -199,25 +194,15 @@ Koyeb/Renderを利用したCI/CDが自動化されています。
 
 ### 4. 統計画面 (`/analytics`)
 
-* **フィルタリング:** `category_id` や `item_id` で絞り込み。
-* **期間切り替え:** クエリパラメータを使って `/analytics?period=weekly` のように状態を保持すると、ブラウザの戻るボタンが効くので便利です。
+* 様々な表現で習慣化の進捗を可視化する画面。
 
 ---
 
 ## 論理構成図（テーブル定義）
 
-### 1. Users (auth.users / Supabase既存)
-
-Supabase Authが管理するユーザーテーブルです。
-
-| カラム名 | データ型 | NULL許容 | 説明 | 備考 |
-| --- | --- | --- | --- | --- |
-| **id** | UUID | NO | ユーザーの一意識別ID | 主キー |
-| email | TEXT | NO | メールアドレス |  |
-
 ---
 
-### 2. hadbit_items (習慣項目マスタ)
+### 1. hadbit_items (習慣項目マスタ)
 
 習慣項目の基本情報を保持します。`user_id` が `UUID` に変更されています。
 
@@ -239,7 +224,7 @@ Supabase Authが管理するユーザーテーブルです。
 
 ---
 
-### 3. hadbit_trees (習慣項目階層管理)
+### 2. hadbit_trees (習慣項目階層管理)
 
 ツリー構造と並び順を管理します。今回の設計変更で **`user_id` が追加** されています。
 
@@ -252,7 +237,7 @@ Supabase Authが管理するユーザーテーブルです。
 
 ---
 
-### 4. hadbit_logs (実施記録)
+### 3. hadbit_logs (実施記録)
 
 ユーザーの習慣実施履歴です。`user_id` が `UUID` に更新されています。
 
@@ -271,11 +256,11 @@ Supabase Authが管理するユーザーテーブルです。
 
 ### 構成のポイント
 
-* **階層構造の実現**: `habit_item_tree` で `parent_id` が `NULL` のものを取得すれば「親カテゴリ」、特定の `parent_id` を持つものを取得すれば「そのカテゴリに属する子項目」として抽出可能です。
-* **表示順の制御**: `habit_item_tree` の `order_no` を書き換えることで、ユーザーごとに自由な並び替え（非機能要件）に対応しています。
-* **カスケード削除**: `habit_item_tree` には `on delete CASCADE` が設定されているため、`habit_items` から物理削除された場合、自動的にツリー構造からも除外されるようになっています。
+* **階層構造の実現**: `hadbit_item_tree` で `parent_id` が `NULL` のものを取得すれば「親カテゴリ」、特定の `parent_id` を持つものを取得すれば「そのカテゴリに属する子項目」として抽出可能です。
+* **表示順の制御**: `hadbit_item_tree` の `order_no` を書き換えることで、ユーザーごとに自由な並び替え（非機能要件）に対応しています。
+* **カスケード削除**: `hadbit_item_tree` には `on delete CASCADE` が設定されているため、`habit_items` から物理削除された場合、自動的にツリー構造からも除外されるようになっています。
 
-こ
+
 ## DDL
 新テーブル対応
 ```sql

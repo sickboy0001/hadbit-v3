@@ -104,21 +104,23 @@ export default async function Dashboard({ userId }: DashboardProps) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              今日の完了項目
-            </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              昨日より {diff > 0 ? "+" : ""}
-              {diff}
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/hadbit/logs">
+          <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10 h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                今日の完了項目
+              </CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{todayCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                昨日より {diff > 0 ? "+" : ""}
+                {diff}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
