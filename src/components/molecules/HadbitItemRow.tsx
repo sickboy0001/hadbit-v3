@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Eye, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import * as LucideIcons from "lucide-react";
 import { ItemNode } from "@/services/hadbititems_service";
 
 interface HadbitItemRowProps {
@@ -29,6 +30,19 @@ export function HadbitItemRow({ item, onEdit, onDelete }: HadbitItemRowProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  let iconName = "";
+  let colorValue = "";
+  try {
+    if (item.item_style) {
+      const parsed =
+        typeof item.item_style === "string"
+          ? JSON.parse(item.item_style)
+          : item.item_style;
+      iconName = parsed?.style?.icon || parsed?.icon || "";
+      colorValue = parsed?.style?.color || parsed?.color || "";
+    }
+  } catch (e) {}
+
   return (
     <div
       ref={setNodeRef}
@@ -43,13 +57,30 @@ export function HadbitItemRow({ item, onEdit, onDelete }: HadbitItemRowProps) {
         >
           <GripVertical className="h-4 w-4" />
         </div>
-        <div className="flex items-baseline gap-2">
-          <div className="font-medium">{item.name}</div>
-          {item.short_name && (
-            <div className="text-xs text-muted-foreground">
-              {item.short_name}
+        <div className="flex items-center gap-2">
+          {iconName &&
+            (() => {
+              const Icon = (LucideIcons as any)[iconName];
+              return Icon ? (
+                <Icon
+                  className="h-4 w-4"
+                  style={{ color: colorValue || undefined }}
+                />
+              ) : null;
+            })()}
+          <div className="flex items-baseline gap-2">
+            <div
+              className="font-medium"
+              style={{ color: colorValue || undefined }}
+            >
+              {item.name}
             </div>
-          )}
+            {item.short_name && (
+              <div className="text-xs text-muted-foreground">
+                {item.short_name}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-4">

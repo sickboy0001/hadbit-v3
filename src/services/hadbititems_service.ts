@@ -8,12 +8,16 @@ export type ItemNode = {
   id: number;
   name: string;
   short_name: string | null;
+  description: string | null;
+  item_style: string | null;
 };
 
 export type CategoryNode = {
   id: number;
   name: string;
   items: ItemNode[];
+  description: string | null;
+  item_style: string | null;
 };
 
 export async function getHadbitItems(userId: string): Promise<CategoryNode[]> {
@@ -22,8 +26,10 @@ SELECT
     i.id, 
     i.name, 
     i.short_name, 
+    i.description,
     t.parent_id, 
-    t.order_no as tree_order
+    t.order_no as tree_order,
+    i.item_style
 FROM hadbit_items i
 LEFT JOIN hadbit_trees t ON t.item_id = i.id
 WHERE i.user_id = '${userId}'
@@ -50,6 +56,8 @@ ORDER BY t.order_no ASC
         id: row.id,
         name: row.name,
         items: [],
+        description: row.description,
+        item_style: row.item_style,
       });
     } else {
       if (!itemsMap.has(row.parent_id)) {
@@ -69,6 +77,8 @@ ORDER BY t.order_no ASC
       id: item.id,
       name: item.name,
       short_name: item.short_name,
+      description: item.description,
+      item_style: item.item_style,
     }));
   });
 

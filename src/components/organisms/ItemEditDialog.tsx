@@ -13,8 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ITEM_COLORS, ITEM_ICONS } from "@/constants/hadbititem_const";
-import { cn } from "@/lib/utils";
 import {
   createCategoryAction,
   createItemAction,
@@ -23,6 +21,8 @@ import {
 } from "@/services/hadbititems_service";
 import { toast } from "sonner";
 import * as LucideIcons from "lucide-react";
+import { IconSelector } from "@/components/molecules/IconSelector";
+import { ColorSelector } from "@/components/molecules/ColorSelector";
 
 export type ItemEditMode =
   | "createCategory"
@@ -62,8 +62,6 @@ export function ItemEditDialog({
   const [description, setDescription] = useState("");
   const [color, setColor] = useState("");
   const [icon, setIcon] = useState("");
-  const [isColorOpen, setIsColorOpen] = useState(false);
-  const [isIconOpen, setIsIconOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -72,8 +70,6 @@ export function ItemEditDialog({
       setDescription(initialValues.description || "");
       setColor(initialValues.color || "");
       setIcon(initialValues.icon || "");
-      setIsColorOpen(false);
-      setIsIconOpen(false);
     }
   }, [isOpen, initialValues]);
 
@@ -119,6 +115,7 @@ export function ItemEditDialog({
             description,
             color,
             icon,
+            item_style,
           },
         };
       } else if (mode === "editItem" && editingId) {
@@ -138,6 +135,7 @@ export function ItemEditDialog({
             description,
             color,
             icon,
+            item_style,
           },
         };
       }
@@ -236,124 +234,10 @@ export function ItemEditDialog({
                 </Button>
 
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="color"
-                      className="text-xs text-muted-foreground"
-                    >
-                      色
-                    </Label>
-                    <div className="flex items-center gap-1">
-                      <Input
-                        id="color"
-                        type="color"
-                        value={color}
-                        onChange={(e) => setColor(e.target.value)}
-                        className="w-8 p-1 h-8 cursor-pointer"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setIsColorOpen(!isColorOpen)}
-                      >
-                        {isColorOpen ? (
-                          <LucideIcons.ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <LucideIcons.ChevronDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Label
-                      htmlFor="icon"
-                      className="text-xs text-muted-foreground"
-                    >
-                      アイコン
-                    </Label>
-                    <div className="flex items-center gap-1">
-                      <Input
-                        id="icon"
-                        value={icon}
-                        onChange={(e) => setIcon(e.target.value)}
-                        className="w-24 h-8 text-xs"
-                        placeholder="Icon name"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setIsIconOpen(!isIconOpen)}
-                      >
-                        {isIconOpen ? (
-                          <LucideIcons.ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <LucideIcons.ChevronDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
+                  <ColorSelector value={color} onChange={setColor} />
+                  <IconSelector value={icon} onChange={setIcon} />
                 </div>
               </div>
-
-              {isColorOpen && (
-                <div className="mt-2 p-2 border rounded-md bg-muted/20 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="flex gap-2 items-center mb-2">
-                    <Input
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      placeholder="#000000"
-                      className="flex-1"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {ITEM_COLORS?.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={cn(
-                          "w-6 h-6 rounded-full border border-muted-foreground/20 transition-all hover:scale-110",
-                          color === c &&
-                            "ring-2 ring-primary ring-offset-2 scale-110",
-                        )}
-                        style={{ backgroundColor: c }}
-                        onClick={() => setColor(c)}
-                        title={c}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {isIconOpen && (
-                <div className="mt-2 max-h-48 overflow-y-auto p-2 border rounded-md bg-muted/20 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="flex flex-wrap gap-2">
-                    {ITEM_ICONS?.map((iconName) => {
-                      const Icon = (LucideIcons as any)[iconName];
-                      return (
-                        <Button
-                          key={iconName}
-                          type="button"
-                          variant={icon === iconName ? "default" : "outline"}
-                          size="xs"
-                          onClick={() => {
-                            setIcon(iconName);
-                            setIsIconOpen(false);
-                          }}
-                          className="h-8 w-8 p-0"
-                          title={iconName}
-                        >
-                          {Icon ? <Icon className="h-4 w-4" /> : iconName}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

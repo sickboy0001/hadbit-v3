@@ -10,12 +10,12 @@ import {
   deleteItemAction,
   deleteCategoryAction,
 } from "@/services/hadbititems_service";
-import { HadbitItemRow } from "@/components/molecules/HadbitItemRow";
-import { HadbitCategoryCard } from "@/components/organisms/HadbitCategoryCard";
+import { CategoryList } from "@/components/organisms/CategoryList";
 import {
   ItemEditDialog,
   ItemEditMode,
 } from "@/components/organisms/ItemEditDialog";
+import { ItemDeleteDialog } from "@/components/organisms/ItemDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
@@ -29,20 +29,7 @@ import {
   DragOverEvent,
   UniqueIdentifier,
 } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { toast } from "sonner";
 
 interface ItemsProps {
@@ -54,7 +41,6 @@ interface ItemsProps {
 export default function Items({ userId }: ItemsProps) {
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryNode | null>(
     null,
@@ -82,7 +68,6 @@ export default function Items({ userId }: ItemsProps) {
       try {
         const data = await getHadbitItems(userId);
         setCategories(data);
-        setExpandedCategories(data.map((c) => c.id));
       } catch (e) {
         console.error("Failed to fetch items", e);
       } finally {
@@ -91,12 +76,6 @@ export default function Items({ userId }: ItemsProps) {
     };
     fetchData();
   }, [userId]);
-
-  const toggleCategory = (id: number) => {
-    setExpandedCategories((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
-    );
-  };
 
   const handleCreateCategory = () => {
     setEditingCategory(null);
@@ -139,11 +118,9 @@ export default function Items({ userId }: ItemsProps) {
           name: data.name,
           items: [],
           description: data.description,
-          color: data.color,
-          icon: data.icon,
+          item_style: data.item_style,
         } as CategoryNode,
       ]);
-      setExpandedCategories((prev) => [...prev, data.id]);
       toast.success("カテゴリを作成しました");
     } else if (creatingItemCategoryId !== null) {
       setCategories((prev) =>
@@ -162,13 +139,12 @@ export default function Items({ userId }: ItemsProps) {
       setCategories((prev) =>
         prev.map((cat) =>
           cat.id === editingCategory.id
-            ? {
+            ? ({
                 ...cat,
                 name: data.name,
                 description: data.description,
-                color: data.color,
-                icon: data.icon,
-              }
+                item_style: data.item_style,
+              } as CategoryNode)
             : cat,
         ),
       );
@@ -184,8 +160,7 @@ export default function Items({ userId }: ItemsProps) {
                   name: data.name,
                   short_name: data.short_name,
                   description: data.description,
-                  color: data.color,
-                  icon: data.icon,
+                  item_style: data.item_style,
                 }
               : item,
           ),
@@ -382,6 +357,29 @@ export default function Items({ userId }: ItemsProps) {
         ? "editCategory"
         : "editItem";
 
+  const getInitialStyle = () => {
+    const target = editingCategory || editingItem;
+    if (!target) return { color: "", icon: "" };
+
+    const targetAny = target as any;
+    if (targetAny.item_style) {
+      try {
+        const parsed =
+          typeof targetAny.item_style === "string"
+            ? JSON.parse(targetAny.item_style)
+            : targetAny.item_style;
+        return {
+          color: parsed?.style?.color || parsed?.color || "",
+          icon: parsed?.style?.icon || parsed?.icon || "",
+        };
+      } catch {
+        // ignore
+      }
+    }
+    return { color: "", icon: "" };
+  };
+  const { color: initialColor, icon: initialIcon } = getInitialStyle();
+
   return (
     <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 w-1/2 mx-auto">
       <header className="flex items-center justify-between">
@@ -406,45 +404,14 @@ export default function Items({ userId }: ItemsProps) {
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
       >
-        <div className="space-y-2">
-          <SortableContext
-            items={categories.map((c) => `cat-${c.id}`)}
-            strategy={verticalListSortingStrategy}
-          >
-            {categories.map((category) => (
-              <HadbitCategoryCard
-                key={category.id}
-                category={category}
-                isExpanded={expandedCategories.includes(category.id)}
-                onToggle={() => toggleCategory(category.id)}
-                onEdit={handleEditCategory}
-                onAddItem={handleCreateItem}
-                onDelete={handleDeleteCategoryClick}
-              >
-                <SortableContext
-                  items={category.items.map((i) => `item-${i.id}`)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="divide-y divide-muted/30">
-                    {category.items.map((item) => (
-                      <HadbitItemRow
-                        key={item.id}
-                        item={item}
-                        onEdit={handleEditItem}
-                        onDelete={handleDeleteClick}
-                      />
-                    ))}
-                    {category.items.length === 0 && (
-                      <div className="p-8 text-center text-sm text-muted-foreground italic">
-                        項目が登録されていません。
-                      </div>
-                    )}
-                  </div>
-                </SortableContext>
-              </HadbitCategoryCard>
-            ))}
-          </SortableContext>
-        </div>
+        <CategoryList
+          categories={categories}
+          onEditCategory={handleEditCategory}
+          onAddItem={handleCreateItem}
+          onDeleteCategory={handleDeleteCategoryClick}
+          onEditItem={handleEditItem}
+          onDeleteItem={handleDeleteClick}
+        />
       </DndContext>
 
       <ItemEditDialog
@@ -461,38 +428,19 @@ export default function Items({ userId }: ItemsProps) {
             (editingCategory as any)?.description ||
             (editingItem as any)?.description ||
             "",
-          color:
-            (editingCategory as any)?.color ||
-            (editingItem as any)?.color ||
-            "",
-          icon:
-            (editingCategory as any)?.icon || (editingItem as any)?.icon || "",
+          color: initialColor,
+          icon: initialIcon,
         }}
         onSuccess={handleDialogSuccess}
       />
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>項目の削除</DialogTitle>
-            <DialogDescription>
-              本当に「{itemToDelete?.name || categoryToDelete?.name}
-              」を削除しますか？この操作は取り消せません。
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              キャンセル
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              削除
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ItemDeleteDialog
+        isOpen={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        item={itemToDelete}
+        category={categoryToDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

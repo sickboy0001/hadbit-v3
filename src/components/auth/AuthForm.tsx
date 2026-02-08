@@ -5,6 +5,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Activity } from "lucide-react";
 
 export function AuthForm() {
   const supabase = createClient();
@@ -25,8 +26,11 @@ export function AuthForm() {
 
   return (
     <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
-      <div className="mb-6 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">ようこそ</h2>
+      <div className="mb-6 text-center flex flex-col items-center">
+        <div className="bg-indigo-50 p-3 rounded-full w-fit mb-4">
+          <Activity className="h-8 w-8 text-indigo-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Hadbitへようこそ</h2>
         <p className="mt-2 text-sm text-gray-600">
           ログインまたは新規登録を行ってください
         </p>
@@ -59,9 +63,19 @@ export function AuthForm() {
               password_label: "パスワード",
               button_label: "ログイン",
               social_provider_text: "{{provider}}でログイン",
-              link_text: "すでにアカウントをお持ちですか？ログイン",
+              link_text: "すでにアカウントをお持ちの方はこちら",
             },
-            // 必要に応じて sign_up, forgotten_password などのラベルも設定可能
+            sign_up: {
+              email_label: "メールアドレス",
+              password_label: "パスワード",
+              button_label: "新規登録",
+              link_text: "アカウントをお持ちでない方はこちら（新規登録）",
+            },
+            forgotten_password: {
+              email_label: "メールアドレス",
+              button_label: "再設定メールを送信",
+              link_text: "パスワードをお忘れの方はこちら",
+            },
           },
         }}
       />

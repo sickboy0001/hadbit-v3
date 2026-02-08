@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -18,8 +19,6 @@ import { CategoryNode } from "@/services/hadbititems_service";
 
 interface HadbitCategoryCardProps {
   category: CategoryNode;
-  isExpanded: boolean;
-  onToggle: () => void;
   onEdit: (category: CategoryNode) => void;
   onAddItem: (categoryId: number) => void;
   onDelete: (category: CategoryNode) => void;
@@ -28,8 +27,6 @@ interface HadbitCategoryCardProps {
 
 export function HadbitCategoryCard({
   category,
-  isExpanded,
-  onToggle,
   onEdit,
   onAddItem,
   onDelete,
@@ -43,6 +40,8 @@ export function HadbitCategoryCard({
     transition,
     isDragging,
   } = useSortable({ id: `cat-${category.id}` });
+
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -62,7 +61,7 @@ export function HadbitCategoryCard({
           "flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50 transition-colors group",
           isExpanded && "border-b border-muted/50",
         )}
-        onClick={onToggle}
+        onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
           <div
