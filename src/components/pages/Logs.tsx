@@ -151,7 +151,7 @@ export default function Logs({ userId }: LogsProps) {
         </p>
       </header>
 
-      <LogRegistrar categories={categories} onAddLog={addLog} />
+      <LogRegistrar userId={userId} onAddLog={addLog} />
 
       <div className="space-y-4">
         <Tabs

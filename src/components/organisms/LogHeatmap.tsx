@@ -32,9 +32,11 @@ export function LogHeatmap({
   );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [logs, setLogs] = useState<hadbitlog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchLogs = async () => {
+      setIsLoading(true);
       const end = new Date(currentDate);
       end.setHours(23, 59, 59, 999);
 
@@ -51,6 +53,8 @@ export function LogHeatmap({
         setLogs(data);
       } catch (e) {
         console.error(e);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchLogs();
@@ -174,57 +178,85 @@ export function LogHeatmap({
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <div className="overflow-x-auto pb-2">
-            <div className="flex gap-1 min-w-max">
-              {weeks.map((week, wIndex) => (
-                <div key={wIndex} className="flex flex-col gap-1">
-                  {week.map((day, dIndex) => {
-                    const dayLogs = getDayLogs(day);
-                    const count = dayLogs.length;
-                    return (
-                      <TooltipProvider key={day.toISOString()}>
-                        <Tooltip delayDuration={100}>
-                          <TooltipTrigger asChild>
-                            <div
-                              className={`w-3 h-3 rounded-[2px] ${getColor(count)}`}
-                            />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="text-xs">
-                              <p className="font-bold">
-                                {format(day, "yyyy/MM/dd(EEE)", { locale: ja })}
-                              </p>
-                              <p>{count} items completed</p>
-                              {dayLogs.length > 0 && (
-                                <ul className="mt-1 list-disc list-inside opacity-80">
-                                  {dayLogs.map((log) => (
-                                    <li key={log.log_id}>{log.master_name}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    );
-                  })}
-                </div>
-              ))}
+      {isLoading ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="overflow-hidden pb-2">
+              <div className="flex gap-1 min-w-max">
+                {Array.from({ length: 53 }).map((_, wIndex) => (
+                  <div key={wIndex} className="flex flex-col gap-1">
+                    {Array.from({ length: 7 }).map((_, dIndex) => (
+                      <div
+                        key={dIndex}
+                        className="w-3 h-3 bg-muted animate-pulse rounded-[2px]"
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="flex items-center justify-end gap-2 mt-4 text-xs text-muted-foreground">
-            <span>Less</span>
-            <div className="w-3 h-3 bg-muted rounded-sm" />
-            <div className="w-3 h-3 bg-primary/20 rounded-sm" />
-            <div className="w-3 h-3 bg-primary/40 rounded-sm" />
-            <div className="w-3 h-3 bg-primary/70 rounded-sm" />
-            <div className="w-3 h-3 bg-primary rounded-sm" />
-            <span>More</span>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex items-center justify-end gap-2 mt-4">
+              <div className="h-3 w-32 bg-muted animate-pulse rounded" />
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="overflow-x-auto pb-2">
+              <div className="flex gap-1 min-w-max">
+                {weeks.map((week, wIndex) => (
+                  <div key={wIndex} className="flex flex-col gap-1">
+                    {week.map((day, dIndex) => {
+                      const dayLogs = getDayLogs(day);
+                      const count = dayLogs.length;
+                      return (
+                        <TooltipProvider key={day.toISOString()}>
+                          <Tooltip delayDuration={100}>
+                            <TooltipTrigger asChild>
+                              <div
+                                className={`w-3 h-3 rounded-[2px] ${getColor(count)}`}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-xs">
+                                <p className="font-bold">
+                                  {format(day, "yyyy/MM/dd(EEE)", {
+                                    locale: ja,
+                                  })}
+                                </p>
+                                <p>{count} items completed</p>
+                                {dayLogs.length > 0 && (
+                                  <ul className="mt-1 list-disc list-inside opacity-80">
+                                    {dayLogs.map((log) => (
+                                      <li key={log.log_id}>
+                                        {log.master_name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-4 text-xs text-muted-foreground">
+              <span>Less</span>
+              <div className="w-3 h-3 bg-muted rounded-sm" />
+              <div className="w-3 h-3 bg-primary/20 rounded-sm" />
+              <div className="w-3 h-3 bg-primary/40 rounded-sm" />
+              <div className="w-3 h-3 bg-primary/70 rounded-sm" />
+              <div className="w-3 h-3 bg-primary rounded-sm" />
+              <span>More</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

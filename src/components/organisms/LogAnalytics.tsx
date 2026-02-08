@@ -79,6 +79,7 @@ export function LogAnalytics({
   const [periodMonths, setPeriodMonths] = useState("6"); // 過去何ヶ月分を表示するか
   const [excludedCategoryIds, setExcludedCategoryIds] = useState<number[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
 
   // 初期化時にlocalStorageから設定を読み込み
   useEffect(() => {
@@ -135,6 +136,7 @@ export function LogAnalytics({
 
   useEffect(() => {
     const fetchLogs = async () => {
+      setIsLoading(true);
       const end = new Date(currentDate);
       end.setHours(23, 59, 59, 999);
 
@@ -147,6 +149,8 @@ export function LogAnalytics({
         setLogs(data);
       } catch (e) {
         console.error(e);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchLogs();
@@ -214,7 +218,7 @@ export function LogAnalytics({
             </DropdownMenu>
 
             <Select value={periodMonths} onValueChange={handlePeriodChange}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-35">
                 <SelectValue placeholder="期間を選択" />
               </SelectTrigger>
               <SelectContent>
@@ -253,96 +257,137 @@ export function LogAnalytics({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 円グラフ: 時間配分 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <PieChartIcon className="h-4 w-4" />
-                カテゴリ別配分 (合計)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-75 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <div className="h-6 w-40 bg-muted animate-pulse rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-75 w-full bg-muted/10 animate-pulse rounded flex items-center justify-center">
+                  <div className="h-40 w-40 rounded-full bg-muted/20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-75 w-full bg-muted/10 animate-pulse rounded flex items-center justify-center">
+                  <div className="h-40 w-40 rounded-full bg-muted/20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <div className="h-6 w-48 bg-muted animate-pulse rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-75 w-full bg-muted/10 animate-pulse rounded" />
+              </CardContent>
+            </Card>
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <div className="h-6 w-48 bg-muted animate-pulse rounded" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-75 w-full bg-muted/10 animate-pulse rounded" />
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 円グラフ: 時間配分 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4" />
+                  カテゴリ別配分 (合計)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-75 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                        }
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {categoryData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[entry.originalIndex % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* レーダーチャート: バランス */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  活動バランス
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-75 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                      }
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
+                      outerRadius="80%"
+                      data={categoryData}
                     >
-                      {categoryData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[entry.originalIndex % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="name" />
+                      <PolarRadiusAxis angle={30} domain={[0, "auto"]} />
+                      <Radar
+                        name="活動数"
+                        dataKey="value"
+                        stroke="#8884d8"
+                        fill="#8884d8"
+                        fillOpacity={0.6}
+                      />
+                      <RechartsTooltip />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* レーダーチャート: バランス */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                活動バランス
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-75 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart
-                    cx="50%"
-                    cy="50%"
-                    outerRadius="80%"
-                    data={categoryData}
-                  >
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="name" />
-                    <PolarRadiusAxis angle={30} domain={[0, "auto"]} />
-                    <Radar
-                      name="活動数"
-                      dataKey="value"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                      fillOpacity={0.6}
-                    />
-                    <RechartsTooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 積層バーチャート: 推移 */}
-          <LogStackedBarChart
-            logs={logs}
-            activeCategories={activeCategories}
-            allCategories={categories}
-            colors={COLORS}
-            currentDate={currentDate}
-            periodMonths={parseInt(periodMonths)}
-          />
-          <LogLineChart
-            logs={logs}
-            categories={categories}
-            currentDate={currentDate}
-            periodMonths={parseInt(periodMonths)}
-          />
-        </div>
+            {/* 積層バーチャート: 推移 */}
+            <LogStackedBarChart
+              logs={logs}
+              activeCategories={activeCategories}
+              allCategories={categories}
+              colors={COLORS}
+              currentDate={currentDate}
+              periodMonths={parseInt(periodMonths)}
+            />
+            <LogLineChart
+              logs={logs}
+              categories={categories}
+              currentDate={currentDate}
+              periodMonths={parseInt(periodMonths)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

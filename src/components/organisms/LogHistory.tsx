@@ -167,8 +167,8 @@ export function LogHistory({
               size="sm"
               className="rounded-none -ml-px border-r-0 px-3 font-normal text-foreground pointer-events-none focus:z-10"
             >
-              {format(startDate, "yyyy/MM", { locale: ja })} -{" "}
-              {format(currentDate, "yyyy/MM", { locale: ja })}
+              {format(startDate, "yyyy/MM/dd", { locale: ja })} -{" "}
+              {format(currentDate, "yyyy/MM/dd", { locale: ja })}
             </Button>
             <Button
               variant="outline"

@@ -5,17 +5,17 @@ import {
   getHadbitItems,
   CategoryNode,
   ItemNode,
-  updateCategoryAction,
-  updateItemAction,
   updateCategoryOrderAction,
   updateItemOrderAction,
   deleteItemAction,
-  createCategoryAction,
-  createItemAction,
   deleteCategoryAction,
 } from "@/services/hadbititems_service";
 import { HadbitItemRow } from "@/components/molecules/HadbitItemRow";
 import { HadbitCategoryCard } from "@/components/organisms/HadbitCategoryCard";
+import {
+  ItemEditDialog,
+  ItemEditMode,
+} from "@/components/organisms/ItemEditDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
@@ -43,8 +43,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface ItemsProps {
@@ -62,8 +60,6 @@ export default function Items({ userId }: ItemsProps) {
     null,
   );
   const [editingItem, setEditingItem] = useState<ItemNode | null>(null);
-  const [tempName, setTempName] = useState("");
-  const [tempShortName, setTempShortName] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItemNode | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryNode | null>(
@@ -105,8 +101,6 @@ export default function Items({ userId }: ItemsProps) {
   const handleCreateCategory = () => {
     setEditingCategory(null);
     setEditingItem(null);
-    setTempName("");
-    setTempShortName("");
     setIsCreatingCategory(true);
     setCreatingItemCategoryId(null);
     setEditModalOpen(true);
@@ -115,8 +109,6 @@ export default function Items({ userId }: ItemsProps) {
   const handleEditCategory = (category: CategoryNode) => {
     setEditingCategory(category);
     setEditingItem(null);
-    setTempName(category.name);
-    setTempShortName("");
     setIsCreatingCategory(false);
     setCreatingItemCategoryId(null);
     setEditModalOpen(true);
@@ -125,8 +117,6 @@ export default function Items({ userId }: ItemsProps) {
   const handleCreateItem = (categoryId: number) => {
     setEditingCategory(null);
     setEditingItem(null);
-    setTempName("");
-    setTempShortName("");
     setIsCreatingCategory(false);
     setCreatingItemCategoryId(categoryId);
     setEditModalOpen(true);
@@ -135,74 +125,73 @@ export default function Items({ userId }: ItemsProps) {
   const handleEditItem = (item: ItemNode) => {
     setEditingItem(item);
     setEditingCategory(null);
-    setTempName(item.name);
-    setTempShortName(item.short_name || "");
     setIsCreatingCategory(false);
     setCreatingItemCategoryId(null);
     setEditModalOpen(true);
   };
 
-  const handleSave = async () => {
-    try {
-      if (isCreatingCategory) {
-        const res = await createCategoryAction(userId, tempName);
-        if (res.success && res.data) {
-          setCategories([
-            ...categories,
-            { id: res.data.id, name: res.data.name, items: [] },
-          ]);
-          setExpandedCategories((prev) => [...prev, res.data.id]);
-          toast.success("カテゴリを作成しました");
-        }
-      } else if (creatingItemCategoryId !== null) {
-        const res = await createItemAction(
-          userId,
-          creatingItemCategoryId,
-          tempName,
-          tempShortName,
-        );
-        if (res.success && res.data) {
-          setCategories((prev) =>
-            prev.map((cat) => {
-              if (cat.id === creatingItemCategoryId) {
-                return {
-                  ...cat,
-                  items: [...cat.items, res.data],
-                };
+  const handleDialogSuccess = (data: any) => {
+    if (isCreatingCategory) {
+      setCategories([
+        ...categories,
+        {
+          id: data.id,
+          name: data.name,
+          items: [],
+          description: data.description,
+          color: data.color,
+          icon: data.icon,
+        } as CategoryNode,
+      ]);
+      setExpandedCategories((prev) => [...prev, data.id]);
+      toast.success("カテゴリを作成しました");
+    } else if (creatingItemCategoryId !== null) {
+      setCategories((prev) =>
+        prev.map((cat) => {
+          if (cat.id === creatingItemCategoryId) {
+            return {
+              ...cat,
+              items: [...cat.items, data],
+            };
+          }
+          return cat;
+        }),
+      );
+      toast.success("項目を作成しました");
+    } else if (editingCategory) {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === editingCategory.id
+            ? {
+                ...cat,
+                name: data.name,
+                description: data.description,
+                color: data.color,
+                icon: data.icon,
               }
-              return cat;
-            }),
-          );
-          toast.success("項目を作成しました");
-        }
-      } else if (editingCategory) {
-        await updateCategoryAction(editingCategory.id, tempName);
-        // ローカルstateの更新
-        setCategories((prev) =>
-          prev.map((cat) =>
-            cat.id === editingCategory.id ? { ...cat, name: tempName } : cat,
+            : cat,
+        ),
+      );
+      toast.success("カテゴリを更新しました");
+    } else if (editingItem) {
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          items: cat.items.map((item) =>
+            item.id === editingItem.id
+              ? {
+                  ...item,
+                  name: data.name,
+                  short_name: data.short_name,
+                  description: data.description,
+                  color: data.color,
+                  icon: data.icon,
+                }
+              : item,
           ),
-        );
-        toast.success("カテゴリを更新しました");
-      } else if (editingItem) {
-        await updateItemAction(editingItem.id, tempName, tempShortName);
-        // ローカルstateの更新
-        setCategories((prev) =>
-          prev.map((cat) => ({
-            ...cat,
-            items: cat.items.map((item) =>
-              item.id === editingItem.id
-                ? { ...item, name: tempName, short_name: tempShortName }
-                : item,
-            ),
-          })),
-        );
-        toast.success("項目を更新しました");
-      }
-      setEditModalOpen(false);
-    } catch (error) {
-      toast.error("保存に失敗しました");
-      console.error(error);
+        })),
+      );
+      toast.success("項目を更新しました");
     }
   };
 
@@ -385,6 +374,14 @@ export default function Items({ userId }: ItemsProps) {
     }
   };
 
+  const editMode: ItemEditMode = isCreatingCategory
+    ? "createCategory"
+    : creatingItemCategoryId !== null
+      ? "createItem"
+      : editingCategory
+        ? "editCategory"
+        : "editItem";
+
   return (
     <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 w-1/2 mx-auto">
       <header className="flex items-center justify-between">
@@ -450,59 +447,29 @@ export default function Items({ userId }: ItemsProps) {
         </div>
       </DndContext>
 
-      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {isCreatingCategory
-                ? "新規カテゴリ作成"
-                : creatingItemCategoryId !== null
-                  ? "新規項目作成"
-                  : editingCategory
-                    ? "カテゴリ編集"
-                    : "項目編集"}
-            </DialogTitle>
-            <DialogDescription>
-              {isCreatingCategory ||
-              editingCategory ||
-              creatingItemCategoryId !== null
-                ? "カテゴリの名称を変更します。"
-                : "項目の詳細を編集します。"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                名称
-              </Label>
-              <Input
-                id="name"
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            {(editingItem || creatingItemCategoryId !== null) && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="short_name" className="text-right">
-                  表示名
-                </Label>
-                <Input
-                  id="short_name"
-                  value={tempShortName}
-                  onChange={(e) => setTempShortName(e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button type="submit" onClick={handleSave}>
-              保存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ItemEditDialog
+        isOpen={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        mode={editMode}
+        userId={userId}
+        categoryId={creatingItemCategoryId}
+        editingId={editingCategory?.id || editingItem?.id}
+        initialValues={{
+          name: editingCategory?.name || editingItem?.name || "",
+          shortName: editingItem?.short_name || "",
+          description:
+            (editingCategory as any)?.description ||
+            (editingItem as any)?.description ||
+            "",
+          color:
+            (editingCategory as any)?.color ||
+            (editingItem as any)?.color ||
+            "",
+          icon:
+            (editingCategory as any)?.icon || (editingItem as any)?.icon || "",
+        }}
+        onSuccess={handleDialogSuccess}
+      />
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>

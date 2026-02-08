@@ -105,14 +105,14 @@ export default async function Dashboard({ userId }: DashboardProps) {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/hadbit/logs">
-          <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10 h-full">
+          <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10 h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 今日の完了項目
               </CardTitle>
               <CheckCircle2 className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col items-center justify-center">
               <div className="text-2xl font-bold">{todayCount}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 昨日より {diff > 0 ? "+" : ""}
@@ -122,14 +122,14 @@ export default async function Dashboard({ userId }: DashboardProps) {
           </Card>
         </Link>
 
-        <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10">
+        <Card className="bg-primary/5 border-primary/20 transition-all hover:bg-primary/10 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
               現在の継続日数
             </CardTitle>
             <ArrowUpRight className="h-4 w-4 text-primary" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col items-center justify-center">
             <div className="text-2xl font-bold">{currentStreak} 日</div>
             <p className="text-xs text-muted-foreground mt-1">
               過去最高記録を更新中！

@@ -1,15 +1,59 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CategoryNode, ItemNode } from "@/services/hadbititems_service";
+import {
+  CategoryNode,
+  ItemNode,
+  getHadbitItems,
+} from "@/services/hadbititems_service";
 
 interface LogRegistrarProps {
-  categories: CategoryNode[];
+  userId: string;
   onAddLog: (item: ItemNode) => void;
 }
 
-export function LogRegistrar({ categories, onAddLog }: LogRegistrarProps) {
+export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      if (!userId) return;
+      setIsLoading(true);
+      try {
+        const data = await getHadbitItems(userId);
+        setCategories(data);
+      } catch (e) {
+        console.error("Failed to fetch items for LogRegistrar", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchItems();
+  }, [userId]);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="h-fit shadow-sm">
+            <CardHeader className="p-3">
+              <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2 p-3 pt-0">
+              <div className="h-8 w-20 bg-muted/50 animate-pulse rounded" />
+              <div className="h-8 w-24 bg-muted/50 animate-pulse rounded" />
+              <div className="h-8 w-16 bg-muted/50 animate-pulse rounded" />
+              <div className="h-8 w-20 bg-muted/50 animate-pulse rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {categories.map((category) => (

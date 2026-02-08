@@ -18,7 +18,7 @@ export default function StartPage() {
             <Button variant="ghost">ログイン</Button>
           </Link>
           <Link href="/signup">
-            <Button>無料で始める</Button>
+            <Button>始める</Button>
           </Link>
         </nav>
       </header>
@@ -62,7 +62,7 @@ export default function StartPage() {
               </div>
               <h3 className="text-xl font-bold">データ分析</h3>
               <p className="text-muted-foreground">
-                継続率や達成状況をグラフで確認。 成長を実感できます。
+                継続率や状況をグラフで確認。 成長を実感できます。
               </p>
             </div>
             <div className="space-y-4 text-center">

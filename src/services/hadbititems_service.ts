@@ -75,13 +75,24 @@ ORDER BY t.order_no ASC
   return categories;
 }
 
-export async function updateCategoryAction(id: number, name: string) {
+export async function updateCategoryAction(
+  id: number,
+  name: string,
+  short_name: string | null,
+  description: string | null,
+  item_style: string | null,
+) {
   const supabase = await createClient();
 
   // カテゴリも hadbit_items テーブルにあると推測されるため hadbit_items を更新
   const { error } = await supabase
     .from("hadbit_items")
-    .update({ name })
+    .update({
+      name,
+      short_name: short_name || null,
+      description: description || null,
+      item_style: item_style || null,
+    })
     .eq("id", id);
 
   if (error) {
@@ -93,12 +104,19 @@ export async function updateCategoryAction(id: number, name: string) {
   return { success: true };
 }
 
-export async function createCategoryAction(userId: string, name: string) {
+export async function createCategoryAction(
+  userId: string,
+  name: string,
+  short_name: string,
+  description: string,
+  item_style: string,
+) {
+  //{"icon":"ChartPie","color":"#008B02"}
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("hadbit_items")
-    .insert({ user_id: userId, name })
+    .insert({ user_id: userId, name, short_name, description, item_style })
     .select()
     .single();
 
@@ -141,13 +159,21 @@ export async function createItemAction(
   categoryId: number,
   name: string,
   short_name: string | null,
+  description: string | null,
+  item_style: string | null,
 ) {
   const supabase = await createClient();
 
   // 1. アイテムを作成
   const { data: itemData, error: itemError } = await supabase
     .from("hadbit_items")
-    .insert({ user_id: userId, name, short_name: short_name || null })
+    .insert({
+      user_id: userId,
+      name,
+      short_name: short_name || null,
+      description: description || null,
+      item_style: item_style || null,
+    })
     .select()
     .single();
 
@@ -226,12 +252,19 @@ export async function updateItemAction(
   id: number,
   name: string,
   short_name: string | null,
+  description: string | null,
+  item_style: string | null,
 ) {
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("hadbit_items")
-    .update({ name, short_name: short_name || null })
+    .update({
+      name,
+      short_name: short_name || null,
+      description: description || null,
+      item_style: item_style || null,
+    })
     .eq("id", id);
 
   if (error) {
