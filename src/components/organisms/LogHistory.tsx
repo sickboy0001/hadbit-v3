@@ -8,7 +8,7 @@ import { CategoryNode } from "@/services/hadbititems_service";
 import { History, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 import { toast } from "sonner";
 
 interface LogHistoryProps {
@@ -17,11 +17,6 @@ interface LogHistoryProps {
   onLogClick: (log: hadbitlog) => void;
   lastUpdated?: Date;
 }
-
-// UTCの日時データをJST（日本時間）に変換して表示するためのヘルパー
-const toJST = (date: Date) => {
-  return new Date(date.getTime() + (date.getTimezoneOffset() + 540) * 60000);
-};
 
 export function LogHistory({
   userId,

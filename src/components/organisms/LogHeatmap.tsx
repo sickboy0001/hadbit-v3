@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Activity } from "lucide-react";
@@ -97,7 +97,7 @@ export function LogHeatmap({
 
   const getDayLogs = (date: Date) => {
     return filteredLogs.filter((l) => {
-      const logDate = getSafeDate(l.done_at);
+      const logDate = toJST(getSafeDate(l.done_at));
       return (
         logDate.getFullYear() === date.getFullYear() &&
         logDate.getMonth() === date.getMonth() &&

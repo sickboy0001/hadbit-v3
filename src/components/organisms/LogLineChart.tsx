@@ -26,7 +26,7 @@ import {
 import { format, subMonths, eachDayOfInterval, isSameDay } from "date-fns";
 import { ja } from "date-fns/locale";
 import { TrendingUp } from "lucide-react";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 
 interface LogLineChartProps {
   logs: hadbitlog[];
@@ -92,7 +92,7 @@ export function LogLineChart({
       // その日のログを抽出
       const dayLogs = logs.filter((l) => {
         if (l.item_id !== itemId) return false;
-        return isSameDay(getSafeDate(l.done_at), day);
+        return isSameDay(toJST(getSafeDate(l.done_at)), day);
       });
 
       // 数値を抽出

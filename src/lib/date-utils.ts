@@ -1,18 +1,6 @@
 export const getSafeDate = (dateInput: string | Date): Date => {
   if (dateInput instanceof Date) {
-    // Dateオブジェクトの場合、ローカル時刻として解釈されている値をUTCとして再解釈する
-    // 例: DBの"03:00"がJST 03:00としてDate化されている場合、それをUTC 03:00 (JST 12:00)に変換
-    return new Date(
-      Date.UTC(
-        dateInput.getFullYear(),
-        dateInput.getMonth(),
-        dateInput.getDate(),
-        dateInput.getHours(),
-        dateInput.getMinutes(),
-        dateInput.getSeconds(),
-        dateInput.getMilliseconds(),
-      ),
-    );
+    return dateInput;
   }
   // 文字列変換とトリム、スラッシュをハイフンに統一
   let str = String(dateInput).trim().replace(/\//g, "-");
@@ -23,4 +11,10 @@ export const getSafeDate = (dateInput: string | Date): Date => {
     str += "Z";
   }
   return new Date(str);
+};
+
+// UTCの日時データをJST（日本時間）に変換して表示するためのヘルパー
+export const toJST = (date: Date): Date => {
+  // DBから取得した時刻（UTC）をJSTとして表示するために、一律で9時間進める
+  return new Date(date.getTime() + 9 * 60 * 60 * 1000);
 };

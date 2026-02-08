@@ -11,7 +11,7 @@ import {
   ChevronRight,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -108,7 +108,7 @@ export function LogCalendar({
 
       // Filter logs for this day
       const dayLogs = filteredLogs.filter((l) => {
-        const logDate = getSafeDate(l.done_at);
+        const logDate = toJST(getSafeDate(l.done_at));
         return (
           logDate.getFullYear() === year &&
           logDate.getMonth() === month &&

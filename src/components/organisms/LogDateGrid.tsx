@@ -7,7 +7,7 @@ import { Check, ChevronLeft, ChevronRight, Table2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -97,7 +97,7 @@ export function LogDateGrid({
   const isLogged = (itemId: number, date: Date) => {
     return logs.some((l) => {
       if (l.item_id !== itemId) return false;
-      const logDate = getSafeDate(l.done_at);
+      const logDate = toJST(getSafeDate(l.done_at));
       return (
         logDate.getFullYear() === date.getFullYear() &&
         logDate.getMonth() === date.getMonth() &&

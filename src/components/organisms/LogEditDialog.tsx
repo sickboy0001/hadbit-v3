@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { hadbitlog } from "@/services/hadbitlogs_service";
 import { format, add } from "date-fns";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 
 interface LogEditDialogProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export function LogEditDialog({
   useEffect(() => {
     if (log) {
       // UTCとして解釈するために、末尾にZがない場合は付与する
-      const date = getSafeDate(log.done_at);
+      const date = toJST(getSafeDate(log.done_at));
       // datetime-local用にフォーマット (yyyy-MM-ddThh:mm)
       setEditDate(format(date, "yyyy-MM-dd'T'HH:mm"));
       setEditComment(log.comment || "");

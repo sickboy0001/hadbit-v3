@@ -31,7 +31,7 @@ import {
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { BarChart3 } from "lucide-react";
-import { getSafeDate } from "@/lib/date-utils";
+import { getSafeDate, toJST } from "@/lib/date-utils";
 
 interface LogStackedBarChartProps {
   logs: hadbitlog[];
@@ -74,7 +74,7 @@ export function LogStackedBarChart({
       const weeks = eachWeekOfInterval({ start, end }, { locale: ja });
       return weeks.map((weekDate) => {
         const weekLogs = logs.filter((l) =>
-          isSameWeek(getSafeDate(l.done_at), weekDate, { locale: ja }),
+          isSameWeek(toJST(getSafeDate(l.done_at)), weekDate, { locale: ja }),
         );
         const d: any = {
           name: format(weekDate, "MM/dd", { locale: ja }),
@@ -89,7 +89,7 @@ export function LogStackedBarChart({
     const months = eachMonthOfInterval({ start, end });
     return months.map((month) => {
       const monthLogs = logs.filter((l) =>
-        isSameMonth(getSafeDate(l.done_at), month),
+        isSameMonth(toJST(getSafeDate(l.done_at)), month),
       );
       const d: any = {
         name: format(month, "yyyy/MM", { locale: ja }),
