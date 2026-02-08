@@ -1,19 +1,80 @@
 "use client";
 
-import { useState } from "react";
-import { hadbitlog } from "@/services/hadbitlogs_service";
+import { useState, useEffect } from "react";
+import { hadbitlog, getHadbitLogs } from "@/services/hadbitlogs_service";
+import { CategoryNode } from "@/services/hadbititems_service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { getSafeDate } from "@/lib/date-utils";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
 
 interface LogCalendarProps {
-  logs: hadbitlog[];
+  userId: string;
+  categories: CategoryNode[];
   onLogClick: (log: hadbitlog) => void;
+  lastUpdated?: Date;
 }
 
-export function LogCalendar({ logs, onLogClick }: LogCalendarProps) {
+export function LogCalendar({
+  userId,
+  categories,
+  onLogClick,
+  lastUpdated,
+}: LogCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">(
+    "all",
+  );
+  const [logs, setLogs] = useState<hadbitlog[]>([]);
+  const [isEnabled, setIsEnabled] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("hadbit_log_calendar_enabled");
+    if (saved !== null) {
+      setIsEnabled(saved === "true");
+    }
+  }, []);
+
+  const handleSwitchChange = (checked: boolean) => {
+    setIsEnabled(checked);
+    localStorage.setItem("hadbit_log_calendar_enabled", String(checked));
+  };
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      // 先月の1日から
+      const start = new Date(year, month - 1, 1);
+      // 今月の末日まで
+      const end = new Date(year, month + 1, 0);
+      end.setHours(23, 59, 59, 999);
+
+      try {
+        const data = await getHadbitLogs(
+          userId,
+          start.toISOString(),
+          end.toISOString(),
+        );
+        setLogs(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchLogs();
+  }, [userId, currentDate, lastUpdated]);
+
+  const filteredLogs =
+    selectedCategoryId === "all"
+      ? logs
+      : logs.filter((l) => l.category_id === selectedCategoryId);
 
   const handlePrev = () => {
     const newDate = new Date(currentDate);
@@ -46,7 +107,7 @@ export function LogCalendar({ logs, onLogClick }: LogCalendarProps) {
       ).padStart(2, "0")}`;
 
       // Filter logs for this day
-      const dayLogs = logs.filter((l) => {
+      const dayLogs = filteredLogs.filter((l) => {
         const logDate = getSafeDate(l.done_at);
         return (
           logDate.getFullYear() === year &&
@@ -113,30 +174,84 @@ export function LogCalendar({ logs, onLogClick }: LogCalendarProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <Button variant="outline" size="icon" onClick={handlePrev}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="font-mono text-sm text-muted-foreground">
-          Displaying: {currentDate.getFullYear()}/{currentDate.getMonth() + 1} &{" "}
-          {prevDate.getFullYear()}/{prevDate.getMonth() + 1}
-        </span>
-        <Button variant="outline" size="icon" onClick={handleNext}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <h3 className="text-xl font-bold flex items-center gap-2 px-1">
+            <CalendarIcon className="h-5 w-5 text-primary" />
+            カレンダー
+          </h3>
+          <Switch checked={isEnabled} onCheckedChange={handleSwitchChange} />
+        </div>
+
+        {isEnabled && (
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap gap-0">
+              <Button
+                variant={selectedCategoryId === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategoryId("all")}
+                className="rounded-r-none focus:z-10"
+              >
+                全て
+              </Button>
+              {categories.map((cat, index) => (
+                <Button
+                  key={cat.id}
+                  variant={
+                    selectedCategoryId === cat.id ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setSelectedCategoryId(cat.id)}
+                  className={`rounded-none -ml-px focus:z-10 ${index === categories.length - 1 ? "rounded-r-md" : ""}`}
+                >
+                  {cat.name}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrev}
+                className="rounded-r-none px-2 focus:z-10"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-none -ml-px border-r-0 px-3 font-normal text-foreground pointer-events-none focus:z-10"
+              >
+                {format(prevDate, "yyyy/MM", { locale: ja })} -{" "}
+                {format(currentDate, "yyyy/MM", { locale: ja })}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                className="rounded-l-none -ml-px px-2 focus:z-10"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      <Card>
-        <CardContent className="p-4">
-          {/* Current Month (Top) */}
-          {renderMonth(currentDate.getFullYear(), currentDate.getMonth())}
+      {isEnabled && (
+        <Card>
+          <CardContent className="p-4">
+            {/* Current Month (Top) */}
+            {renderMonth(currentDate.getFullYear(), currentDate.getMonth())}
 
-          <div className="border-t my-6" />
+            <div className="border-t my-6" />
 
-          {/* Previous Month (Bottom) */}
-          {renderMonth(prevDate.getFullYear(), prevDate.getMonth())}
-        </CardContent>
-      </Card>
+            {/* Previous Month (Bottom) */}
+            {renderMonth(prevDate.getFullYear(), prevDate.getMonth())}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -85,54 +85,60 @@ export function LogEditDialog({
               value={editDate}
               onChange={(e) => setEditDate(e.target.value)}
             />
-            <div className="flex flex-wrap gap-1.5">
+            <div className="grid grid-cols-6 gap-1">
               <Button
                 type="button"
                 variant="outline"
                 size="xs"
                 onClick={() => adjustDate(-1, "days")}
+                title="1日前"
               >
-                1日前
+                -1d
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="xs"
                 onClick={() => adjustDate(-12, "hours")}
+                title="12時間前"
               >
-                12時間前
+                -12h
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="xs"
                 onClick={() => adjustDate(-1, "hours")}
+                title="1時間前"
               >
-                1時間前
+                -1h
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="xs"
                 onClick={() => adjustDate(1, "hours")}
+                title="1時間後"
               >
-                1時間後
+                +1h
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="xs"
                 onClick={() => adjustDate(12, "hours")}
+                title="12時間後"
               >
-                12時間後
+                +12h
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="xs"
                 onClick={() => adjustDate(1, "days")}
+                title="1日後"
               >
-                1日後
+                +1d
               </Button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 
-- [hadbit-fastapi](#hadbit-fastapi)
+- [hadbit-v3](#hadbit-v3)
   - [🚀 プロジェクト概要](#-プロジェクト概要)
   - [🛠 技術スタックと選定理由](#-技術スタックと選定理由)
   - [📋 基本仕様](#-基本仕様)
@@ -32,7 +32,7 @@
 - [履歴](#履歴)
 
 
-# hadbit-fastapi
+# hadbit-v3
 
 React NextJS Vercel Supabaseでの構成想定
 
@@ -76,6 +76,8 @@ base:PFXDGRSbase
 
 * **DB/Auth**: Supabase (PostgreSQL / Supabase Auth)
 
+* [Github](https://github.com/sickboy0001/hadbit-v3)
+* [Vercel](https://hadbit-v3.vercel.app/dashboard)
 ---
 
 ## 📂 ディレクトリ構成
@@ -398,8 +400,11 @@ export default async function Page() {
 Supabaseの設定画面にある Transaction mode (ポート 6543) のURLを使ってください。Next.jsはサーバーレス環境（Vercelなど）で動くため、接続数が急増してもパンクしないようにするためです。
 
 # 履歴
+- 2026/2/8
+  - おおむね完了かな
+  - 第二ステップとしては、スタイル、テンプレートかな。
 - 2026/2/7
-  - [デプロイ](https://hadbit-v3.vercel.app/hadbit/logs)
+  - [デプロイ](https://hadbit-v3.vercel.app/dashboard)
   - AntiGravity→Vscodeで作成
   - 残ダッシュボード、記録参照の機能について諸々・・・ 
   - test

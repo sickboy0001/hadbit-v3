@@ -21,7 +21,19 @@ export type hadbitlog = {
   master_short_name: string | null;
 };
 
-export async function getHadbitLogs(userId: string): Promise<hadbitlog[]> {
+export async function getHadbitLogs(
+  userId: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<hadbitlog[]> {
+  const now = new Date();
+  const end = endDate ?? now.toISOString();
+  const start =
+    startDate ??
+    new Date(
+      new Date().setFullYear(new Date().getFullYear() - 1),
+    ).toISOString();
+
   const query = `
     SELECT 
         logs.id AS log_id,
@@ -39,6 +51,8 @@ export async function getHadbitLogs(userId: string): Promise<hadbitlog[]> {
     INNER JOIN hadbit_trees tree ON tree.item_id = logs.item_id
     INNER JOIN hadbit_items category ON category.id = tree.parent_id
     WHERE logs.user_id = '${userId}'
+      AND logs.done_at >= '${start}'
+      AND logs.done_at <= '${end}'
     ORDER BY logs.done_at DESC, master.id DESC
   `;
   const result = await executeQuery(query);

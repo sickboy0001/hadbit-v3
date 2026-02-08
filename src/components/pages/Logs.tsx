@@ -18,10 +18,9 @@ import { LogRegistrar } from "@/components/organisms/LogRegistrar";
 import { LogHistory } from "@/components/organisms/LogHistory";
 import { LogEditDialog } from "@/components/organisms/LogEditDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogDateGrid } from "@/components/organisms/LogDateGrid";
-import { LogCalendar } from "@/components/organisms/LogCalendar";
+import { LogDateGridCalendar } from "@/components/organisms/LogDateGridCalendar";
 import { LogHeatmap } from "@/components/organisms/LogHeatmap";
-import { Button } from "@/components/ui/button";
+import { LogAnalytics } from "@/components/organisms/LogAnalytics";
 
 interface LogsProps {
   userId: string;
@@ -31,12 +30,11 @@ export default function Logs({ userId }: LogsProps) {
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [logs, setLogs] = useState<hadbitlog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("history");
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   const [selectedLog, setSelectedLog] = useState<hadbitlog | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">(
-    "all",
-  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,6 +54,13 @@ export default function Logs({ userId }: LogsProps) {
     };
     fetchData();
   }, [userId]);
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem("hadbit_logs_tab");
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
 
   const openEditDialog = (log: hadbitlog) => {
     setSelectedLog(log);
@@ -86,6 +91,7 @@ export default function Logs({ userId }: LogsProps) {
           master_short_name: item.short_name,
         };
         setLogs([newLog, ...logs]);
+        setLastUpdated(new Date());
         toast.success(`${item.name} を記録しました！`, {
           description: new Date().toLocaleTimeString(),
           action: {
@@ -104,6 +110,7 @@ export default function Logs({ userId }: LogsProps) {
   const deleteLog = async (id: number) => {
     await deleteHadbitLog(userId, id);
     setLogs((prev) => prev.filter((l) => l.log_id !== id));
+    setLastUpdated(new Date());
     toast.info("記録を削除しました。");
   };
 
@@ -118,6 +125,7 @@ export default function Logs({ userId }: LogsProps) {
         l.log_id === logId ? { ...l, done_at: doneAt, comment: comment } : l,
       ),
     );
+    setLastUpdated(new Date());
     toast.success("記録を更新しました");
   };
 
@@ -129,15 +137,10 @@ export default function Logs({ userId }: LogsProps) {
     deleteLog(logId);
   };
 
-  const filteredLogs =
-    selectedCategoryId === "all"
-      ? logs
-      : logs.filter((l) => l.category_id === selectedCategoryId);
-
-  const displayCategories =
-    selectedCategoryId === "all"
-      ? categories
-      : categories.filter((c) => c.id === selectedCategoryId);
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    localStorage.setItem("hadbit_logs_tab", value);
+  };
 
   return (
     <div className="w-full space-y-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -151,44 +154,38 @@ export default function Logs({ userId }: LogsProps) {
       <LogRegistrar categories={categories} onAddLog={addLog} />
 
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategoryId === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategoryId("all")}
-          >
-            全て
-          </Button>
-          {categories.map((cat) => (
-            <Button
-              key={cat.id}
-              variant={selectedCategoryId === cat.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategoryId(cat.id)}
-            >
-              {cat.name}
-            </Button>
-          ))}
-        </div>
-
-        <Tabs defaultValue="history" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="history">記録</TabsTrigger>
-            <TabsTrigger value="dategrid">日付</TabsTrigger>
             <TabsTrigger value="calendar">カレンダー</TabsTrigger>
-            <TabsTrigger value="heatmap">ヒートマップ</TabsTrigger>
+            <TabsTrigger value="analytics">分析</TabsTrigger>
           </TabsList>
           <TabsContent value="history" className="mt-4">
-            <LogHistory logs={filteredLogs} onLogClick={openEditDialog} />
-          </TabsContent>
-          <TabsContent value="dategrid" className="mt-4">
-            <LogDateGrid logs={filteredLogs} categories={displayCategories} />
+            <LogHistory
+              userId={userId}
+              categories={categories}
+              onLogClick={openEditDialog}
+              lastUpdated={lastUpdated}
+            />
           </TabsContent>
           <TabsContent value="calendar" className="mt-4">
-            <LogCalendar logs={filteredLogs} onLogClick={openEditDialog} />
+            <LogDateGridCalendar
+              userId={userId}
+              categories={categories}
+              onLogClick={openEditDialog}
+              lastUpdated={lastUpdated}
+            />
           </TabsContent>
-          <TabsContent value="heatmap" className="mt-4">
-            <LogHeatmap logs={filteredLogs} />
+          <TabsContent value="analytics" className="mt-4">
+            <LogAnalytics
+              userId={userId}
+              categories={categories}
+              lastUpdated={lastUpdated}
+            />
           </TabsContent>
         </Tabs>
       </div>
