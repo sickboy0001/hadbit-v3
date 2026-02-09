@@ -58,7 +58,7 @@ export function HadbitCategoryCard({
     >
       <div
         className={cn(
-          "flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50 transition-colors group",
+          "flex items-center gap-4 p-2 cursor-pointer hover:bg-muted/50 transition-colors group",
           isExpanded && "border-b border-muted/50",
         )}
         onClick={() => setIsExpanded(!isExpanded)}

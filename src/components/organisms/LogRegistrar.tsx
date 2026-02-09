@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CategoryNode,
   ItemNode,
   getHadbitItems,
 } from "@/services/hadbititems_service";
+import { HadbitItemButton } from "@/components/molecules/HadbitItemButton";
 
 interface LogRegistrarProps {
   userId: string;
@@ -55,28 +55,42 @@ export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
       {categories.map((category) => (
         <Card
           key={category.id}
-          className="h-fit shadow-sm hover:shadow-md transition-shadow duration-200"
+          className="h-fit shadow-sm hover:shadow-md transition-shadow duration-200 p-1 md:p-2"
         >
           <CardHeader className="p-3">
             <CardTitle className="text-base font-semibold pl-2 border-l-4 border-primary/50">
               {category.name}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-3 pt-0">
-            {category.items.map((item) => (
-              <Button
-                key={item.id}
-                onClick={() => onAddLog(item)}
-                variant="outline"
-                className="h-auto py-1.5 px-3 text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted group"
-              >
-                {item.name}
-              </Button>
-            ))}
+          <CardContent className="flex flex-wrap gap-2 p-1 pt-0 md:gap-3 md:p-4 md:pt-0">
+            {category.items.map((item) => {
+              let iconName = "";
+              let colorValue = "";
+              try {
+                if (item.item_style) {
+                  const parsed =
+                    typeof item.item_style === "string"
+                      ? JSON.parse(item.item_style)
+                      : item.item_style;
+                  iconName = parsed?.style?.icon || parsed?.icon || "";
+                  colorValue = parsed?.style?.color || parsed?.color || "";
+                }
+              } catch (e) {}
+              return (
+                <HadbitItemButton
+                  key={item.id}
+                  text={item.short_name || item.name}
+                  icon={iconName}
+                  color={colorValue}
+                  onClick={() => onAddLog(item)}
+                  className="h-auto py-2 px-2 text-xs md:text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted group"
+                />
+              );
+            })}
           </CardContent>
         </Card>
       ))}

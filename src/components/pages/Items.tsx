@@ -381,8 +381,8 @@ export default function Items({ userId }: ItemsProps) {
   const { color: initialColor, icon: initialIcon } = getInitialStyle();
 
   return (
-    <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 w-1/2 mx-auto">
-      <header className="flex items-center justify-between">
+    <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 mx-auto w-fit">
+      <header className="flex items-center justify-between gap-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">項目管理</h1>
           <p className="text-muted-foreground mt-1">

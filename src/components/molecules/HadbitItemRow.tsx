@@ -47,7 +47,7 @@ export function HadbitItemRow({ item, onEdit, onDelete }: HadbitItemRowProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between py-0.5 px-1.5 pl-6 hover:bg-muted/50 group transition-all bg-transparent"
+      className="flex items-center gap-4 py-0.5 px-1.5 pl-6 hover:bg-muted/50 group transition-all bg-transparent"
     >
       <div className="flex items-center gap-3">
         <div
@@ -83,7 +83,7 @@ export function HadbitItemRow({ item, onEdit, onDelete }: HadbitItemRowProps) {
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-4">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
           <Eye className="h-4 w-4" />
         </Button>

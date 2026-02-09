@@ -97,7 +97,7 @@ export function LogCalendar({
     const days = [];
     // Empty slots for previous month
     for (let i = 0; i < startDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="h-24 bg-muted/5" />);
+      days.push(<div key={`empty-${i}`} className="min-h-24 bg-muted/5" />);
     }
 
     // Days
@@ -105,6 +105,7 @@ export function LogCalendar({
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
         d,
       ).padStart(2, "0")}`;
+      const dayOfWeek = new Date(year, month, d).getDay();
 
       // Filter logs for this day
       const dayLogs = filteredLogs.filter((l) => {
@@ -119,18 +120,22 @@ export function LogCalendar({
       days.push(
         <div
           key={dateStr}
-          className="h-24 border border-muted/50 p-1 flex flex-col gap-1 overflow-hidden hover:bg-muted/10 transition-colors"
+          className="min-h-24 h-auto border border-muted/50 p-1 flex flex-col gap-1 hover:bg-muted/10 transition-colors"
         >
           <span
             className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${
               dayLogs.length > 0
                 ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground"
+                : dayOfWeek === 0
+                  ? "text-red-600"
+                  : dayOfWeek === 6
+                    ? "text-blue-600"
+                    : "text-muted-foreground"
             }`}
           >
             {d}
           </span>
-          <div className="flex flex-col gap-0.5 overflow-y-auto no-scrollbar">
+          <div className="flex flex-col gap-0.5">
             {dayLogs.map((log) => (
               <div
                 key={log.log_id}
@@ -155,10 +160,16 @@ export function LogCalendar({
           {year}年 {month + 1}月
         </h3>
         <div className="grid grid-cols-7 gap-1">
-          {["日", "月", "火", "水", "木", "金", "土"].map((w) => (
+          {["日", "月", "火", "水", "木", "金", "土"].map((w, index) => (
             <div
               key={w}
-              className="text-center text-xs text-muted-foreground py-1"
+              className={`text-center text-xs py-1 ${
+                index === 0
+                  ? "text-red-600"
+                  : index === 6
+                    ? "text-blue-600"
+                    : "text-muted-foreground"
+              }`}
             >
               {w}
             </div>

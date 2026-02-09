@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import * as LucideIcons from "lucide-react";
 import { IconSelector } from "@/components/molecules/IconSelector";
 import { ColorSelector } from "@/components/molecules/ColorSelector";
+import { HadbitItemButton } from "@/components/molecules/HadbitItemButton";
 
 export type ItemEditMode =
   | "createCategory"
@@ -216,27 +217,13 @@ export function ItemEditDialog({
               placeholder="詳細な説明を入力"
             />
           </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label className="text-right mt-3">スタイル</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">スタイル</Label>
             <div className="col-span-3">
-              <div className="flex flex-col gap-3 items-start">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="gap-2"
-                  style={{ color: color, borderColor: color }}
-                >
-                  {(() => {
-                    const Icon = (LucideIcons as any)[icon];
-                    return Icon ? <Icon className="h-4 w-4" /> : null;
-                  })()}
-                  {shortName}
-                </Button>
-
-                <div className="flex flex-wrap items-center gap-4">
-                  <ColorSelector value={color} onChange={setColor} />
-                  <IconSelector value={icon} onChange={setIcon} />
-                </div>
+              <div className="flex items-center gap-4">
+                <HadbitItemButton icon={icon} text={shortName} color={color} />
+                <ColorSelector value={color} onChange={setColor} />
+                <IconSelector value={icon} onChange={setIcon} />
               </div>
             </div>
           </div>

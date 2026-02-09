@@ -3,13 +3,20 @@
 import { Fragment, useState, useEffect } from "react";
 import { CategoryNode } from "@/services/hadbititems_service";
 import { hadbitlog, getHadbitLogs } from "@/services/hadbitlogs_service";
-import { Check, ChevronLeft, ChevronRight, Table2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Table2, Check } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { getSafeDate, toJST } from "@/lib/date-utils";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface LogDateGridProps {
   userId: string;
@@ -94,8 +101,8 @@ export function LogDateGrid({
     );
   };
 
-  const isLogged = (itemId: number, date: Date) => {
-    return logs.some((l) => {
+  const getLog = (itemId: number, date: Date) => {
+    return logs.find((l) => {
       if (l.item_id !== itemId) return false;
       const logDate = toJST(getSafeDate(l.done_at));
       return (
@@ -226,36 +233,97 @@ export function LogDateGrid({
                       </td>
                       <td colSpan={dates.length} />
                     </tr>
-                    {category.items.map((item) => (
-                      <tr
-                        key={`item-${item.id}`}
-                        className="border-b last:border-0"
-                      >
-                        <td className="p-2 font-medium sticky left-0 bg-background z-10 truncate max-w-37.5">
-                          {item.name}
-                        </td>
-                        {dates.map((date) => {
-                          const checked = isLogged(item.id, date);
-                          const isTodayDate = isToday(date);
-                          return (
-                            <td
-                              key={date.toISOString()}
-                              className={`p-1 text-center border-l border-dashed ${
-                                isTodayDate ? "bg-primary/10" : ""
-                              }`}
-                            >
-                              {checked && (
-                                <div className="flex justify-center">
-                                  <div className="h-6 w-6 bg-primary/10 rounded-full flex items-center justify-center">
-                                    <Check className="h-4 w-4 text-primary" />
+                    {category.items.map((item) => {
+                      let iconName = "";
+                      let colorValue = "";
+                      try {
+                        if (item.item_style) {
+                          const parsed =
+                            typeof item.item_style === "string"
+                              ? JSON.parse(item.item_style)
+                              : item.item_style;
+                          iconName = parsed?.style?.icon || parsed?.icon || "";
+                          colorValue =
+                            parsed?.style?.color || parsed?.color || "";
+                        }
+                      } catch (e) {}
+                      const Icon = iconName
+                        ? (LucideIcons as any)[iconName]
+                        : Check;
+
+                      return (
+                        <tr
+                          key={`item-${item.id}`}
+                          className="border-b last:border-0"
+                        >
+                          <td className="p-2 font-medium sticky left-0 bg-background z-10 truncate max-w-37.5">
+                            {item.name}
+                          </td>
+                          {dates.map((date) => {
+                            const log = getLog(item.id, date);
+                            const isTodayDate = isToday(date);
+                            return (
+                              <td
+                                key={date.toISOString()}
+                                className={`p-1 text-center border-l border-dashed ${
+                                  isTodayDate ? "bg-primary/10" : ""
+                                }`}
+                              >
+                                {log && (
+                                  <div className="flex justify-center">
+                                    {log.comment ? (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div
+                                              className="h-6 w-6 rounded-full flex items-center justify-center cursor-help"
+                                              style={{
+                                                backgroundColor: colorValue
+                                                  ? `${colorValue}1A`
+                                                  : undefined,
+                                              }}
+                                            >
+                                              <Icon
+                                                className="h-4 w-4"
+                                                style={{
+                                                  color:
+                                                    colorValue || undefined,
+                                                }}
+                                              />
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p className="max-w-xs break-words">
+                                              {log.comment}
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    ) : (
+                                      <div
+                                        className="h-6 w-6 rounded-full flex items-center justify-center"
+                                        style={{
+                                          backgroundColor: colorValue
+                                            ? `${colorValue}1A`
+                                            : undefined,
+                                        }}
+                                      >
+                                        <Icon
+                                          className="h-4 w-4"
+                                          style={{
+                                            color: colorValue || undefined,
+                                          }}
+                                        />
+                                      </div>
+                                    )}
                                   </div>
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </Fragment>
                 ))}
                 {displayCategories.length === 0 && (
