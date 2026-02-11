@@ -75,12 +75,15 @@ export function LogEditDialog({
           setItem(fetchedItem);
           if (fetchedItem?.item_style) {
             try {
-              const parsed = JSON.parse(fetchedItem.item_style);
+              const parsed =
+                typeof fetchedItem.item_style === "string"
+                  ? JSON.parse(fetchedItem.item_style)
+                  : fetchedItem.item_style;
               if (parsed?.fields?.length > 0) {
                 setTemplate(parsed);
               }
             } catch (e) {
-              console.error("Failed to parse item_style", e);
+              console.warn("Failed to parse item_style", e);
             }
           }
         } catch (error) {
@@ -139,7 +142,13 @@ export function LogEditDialog({
           />
           <div className="grid gap-2">
             <Label htmlFor="comment">コメント</Label>
-            {template && !loadingItem && (
+            {loadingItem && (
+              <div className="space-y-2 py-1">
+                <div className="h-8 w-full bg-muted/50 animate-pulse rounded" />
+                <div className="h-8 w-3/4 bg-muted/50 animate-pulse rounded" />
+              </div>
+            )}
+            {!loadingItem && template && (
               <LogTemplateDataInput
                 template={template}
                 initialValues={editDetails}
