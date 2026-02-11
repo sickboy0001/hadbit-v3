@@ -430,6 +430,10 @@ export default function Items({ userId }: ItemsProps) {
             "",
           color: initialColor,
           icon: initialIcon,
+          item_style:
+            (editingCategory as any)?.item_style ||
+            (editingItem as any)?.item_style ||
+            "",
         }}
         onSuccess={handleDialogSuccess}
       />

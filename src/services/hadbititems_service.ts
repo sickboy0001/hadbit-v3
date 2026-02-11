@@ -85,6 +85,32 @@ ORDER BY t.order_no ASC
   return categories;
 }
 
+export async function getHadbitItem(itemId: number): Promise<ItemNode | null> {
+  const query = `
+    SELECT
+        id,
+        name,
+        short_name,
+        description,
+        item_style
+    FROM hadbit_items
+    WHERE id = ${itemId}
+  `;
+
+  const result = await executeQuery(query);
+
+  if (
+    !result.success ||
+    !Array.isArray(result.data) ||
+    result.data.length === 0
+  ) {
+    console.error(`Failed to fetch item with id ${itemId}:`, result.error);
+    return null;
+  }
+
+  return result.data[0] as unknown as ItemNode;
+}
+
 export async function updateCategoryAction(
   id: number,
   name: string,

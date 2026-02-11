@@ -23,6 +23,12 @@
     - [4. 統計画面 (`/analytics`)](#4-統計画面-analytics)
   - [論理構成図（テーブル定義）](#論理構成図テーブル定義)
     - [1. hadbit\_items (習慣項目マスタ)](#1-hadbit_items-習慣項目マスタ)
+      - [1.item\_style](#1item_style)
+  - [1. 登山テンプレート](#1-登山テンプレート)
+  - [2. ランニングテンプレート](#2-ランニングテンプレート)
+  - [3. 外食テンプレート](#3-外食テンプレート)
+  - [4. 映画鑑賞テンプレート](#4-映画鑑賞テンプレート)
+  - [実装のアドバイス：テンプレート処理の指針](#実装のアドバイステンプレート処理の指針)
     - [2. hadbit\_trees (習慣項目階層管理)](#2-hadbit_trees-習慣項目階層管理)
     - [3. hadbit\_logs (実施記録)](#3-hadbit_logs-実施記録)
     - [構成のポイント](#構成のポイント)
@@ -225,6 +231,343 @@ src/
 
 ---
 
+#### 1.item_style
+
+- JSON形式で、item_styleのテンプレートを指定できるものとする。
+- 情報としてはパーツの並びとパーツ毎の情報をもつ
+- パーツ毎の情報
+  - 前置詞、インプット、後置詞をセットとする
+    - インプットは、数値（数値、少数含むかどうか、Placeholder、文字数（幅））か、文字列（日本語、英語、改行含む）かを選べる
+    - 前置詞、後置詞はコンテンツの有無で表示、非表示を選べる
+- 例）
+  - パーツセット
+    - 項目名、
+      - 前置詞１、インプット１、後置詞１(改行：有無)
+      - 前置詞２、インプット２、後置詞２(改行：有無)、
+      - 入力項目１、入力項目２、
+      - 結果
+    - 登山
+      - 前置詞１：（空白）、インプット１：Placeholder：`山`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`詳細`、後置詞２：`)`
+      - 前置詞３：`[`、インプット３:Placeholder：`時間`、後置詞３`時間]`
+      - 入力項目１：`六甲山`、入力項目２：`芦屋・有馬`、入力項目３：`2.5`→結果 `六甲山(芦屋・有馬)[2.5時間]`
+    - ランニング１
+      - 前置詞１：（空白）、インプット１：Placeholder：`距離`、後置詞１：（空白）
+      - 前置詞２：`[`、インプット２:Placeholder：`分`、後置詞２`分]`
+      - 前置詞３：`[`、インプット３:Placeholder：`場所`、後置詞３`]`
+      - 入力項目１：`3.3`、入力項目２：`30`、入力項目３：`御堂筋`→結果 `3.3Km[30分][御堂筋]`
+    - 有酸素運動・ジム
+      - 前置詞１：（空白）、インプット１：Placeholder：`分`、後置詞１：（空白）
+      - 前置詞２：`x`、インプット２:Placeholder：`回数`、後置詞２``
+      - 前置詞３：`[機器：`、インプット３:Placeholder：`機器`、後置詞３`]`
+      - 例１）入力項目１：`30`、入力項目２：`3`、入力項目３：`バイク`→結果 `30分x3[機器：バイク]`
+      - 例２）入力項目１：`30`、入力項目２：`1`、入力項目３：`ランニング`→結果 `30分x1[機器：ランニング]`
+    - 登山
+      - 前置詞１：（空白）、インプット１：Placeholder：`山`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`詳細`、後置詞２：`)`
+      - 前置詞３：`[`、インプット３:Placeholder：`時間`、後置詞３`時間]`
+      - 例１）入力項目１：`六甲山`、入力項目２：`芦屋・有馬`、入力項目３：`2.5`→結果 `六甲山(芦屋・有馬)[2.5時間]`
+    - 外食
+      - 前置詞１：`店：`、インプット１：Placeholder：`店`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`場所`、後置詞２：`)`
+      - 前置詞３：`[`、インプット３：Placeholder：`円`、後置詞３：`円・`
+      - 前置詞４：``、インプット４：Placeholder：`人数`、後置詞４：`人]`
+      - 例１）入力項目１：`ケンタ`、入力項目２：`南千里`、入力項目３：`９００`、入力項目４：`１`→結果 `店：ケンタ(南千里)[900円・1人]`
+    - 立ち飲み
+      - 前置詞１：`店：`、インプット１：Placeholder：`店`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`場所`、後置詞２：`)`
+      - 前置詞３：`[`、インプット３：Placeholder：`円`、後置詞３：`円]`
+      - 例１）入力項目１：`こてつ`、入力項目２：`なんば`、入力項目３：`１６００`→結果 `店：こてつ(なんば)[1600円]`
+    - のみ
+      - 前置詞１：`店：`、インプット１：Placeholder：`店`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`場所`、後置詞２：`)`
+      - 前置詞３：`[`、インプット３：Placeholder：`円`、後置詞３：`円]`
+      - 例１）入力項目１：`xxxx`、入力項目２：`ｙｙｙｙ`、入力項目３：`２０００`→結果 `店：xxxx(ｙｙｙｙ)[3600円]`
+    - 映画
+      - 前置詞１：（空白）、インプット１：Placeholder：`タイトル`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`場所`、後置詞２：`)`
+      - 前置詞３：（空白）、インプット３：Placeholder：`評価（１－５）`、後置詞２：`点`
+      - 例１）入力項目１：`沈黙の艦隊`、入力項目２：`難波`、入力項目３：`３．５`→結果 `沈黙の艦隊(難波)[3.5点]`
+      - 例２）入力項目１：`寄生獣（実写）`、入力項目２：`ama-pra`、入力項目３：`３．５`→結果 `寄生獣（実写）(ama-pra)[3.5点]`
+    - 書籍
+      - 前置詞１：（空白）、インプット１：Placeholder：`タイトル`、後置詞１：（空白）
+      - 前置詞２：`(`、インプット２：Placeholder：`進捗`、後置詞２：`%)`
+      - 例１）入力項目１：`ホモデウス上巻`、入力項目２：`100`→結果 `ホモデウス上巻(100%)`
+      - 例２）入力項目１：`nexus`、入力項目２：`50`→結果 `nexus(50%)`
+
+
+**現状**
+```sql
+select * from hadbit_items
+order by updated_at desc
+-- item_style
+-- ex1)
+-- (空白、Nullで落ちることは許容される)
+-- ex2)
+-- {"style":{"icon":"BicepsFlexed","color":"#FF5733"}}
+-- ex3)
+-- {"style":{"icon":"","color":""}}
+```
+
+**更新後**
+- 映画
+    - 前置詞１：（空白）、インプット１：Placeholder：`タイトル`、後置詞１：（空白）
+    - 前置詞２：`(`、インプット２：Placeholder：`場所`、後置詞２：`)`
+    - 前置詞３：（空白）、インプット３：Placeholder：`評価（１－５）`、後置詞２：`点`
+```JSONB
+{
+  "style":{"icon":"BicepsFlexed","color":"#FF5733"}
+  "template":[
+    "input1":{"prefix":"","type":"string","placeholder":"タイトル","suffix":""},
+    "input2":{"prefix":"(","type":"string","placeholder":"場所","suffix":")"},
+    "input3":{"prefix":"[","type":"number","placeholder":"評価（１－５）","suffix":"点"]}
+  ]
+}
+```
+対象のデータ
+- ランニング１
+  - 前置詞１：（空白）、インプット１：Placeholder：`距離`、後置詞１：`Km`
+  - 前置詞２：`[`、インプット２:Placeholder：`分`、後置詞２`分]`
+  - 前置詞３：`[`、インプット３:Placeholder：`場所`、後置詞３`]`
+  - 前置詞４：`memo:`、インプット３:Placeholder：`フリーコメント`、後置詞３``
+  - 入力項目１：`3.3`、入力項目２：`30`、入力項目３：`御堂筋`→結果 `3.3Km[30分][御堂筋]memo:xxxxxxx`
+
+テンプレート
+```JSONB
+{
+  "style":{"icon":"BicepsFlexed","color":"#FF5733"}
+  "template":[
+    "input1":{"name":"distance",prefix":"","type":"real","placeholder":"距離","suffix":"km"},
+    "input2":{"name":"time",prefix":"[","type":"number","placeholder":"分","suffix":"]"},
+    "input3":{
+      "name":"location"
+      ,"prefix":"["
+      ,"type":"string"
+      ,"placeholder":"場所"
+      ,"suffix":"]"
+    }
+    "input4":{
+      "name":"memo"
+      ,"prefix":"memo:"
+      ,"type":"text"
+      ,"placeholder":"フリーコメント"
+      ,"suffix":""
+
+    }    
+  ]
+}
+```
+各テンプレートについて、「入力UIでの項目」「内部のJSON定義（nameとの紐付け）」「実際の結果」を整理しました。
+
+これらを指針にすることで、どのテンプレートでも**「入力した時だけ前置詞・後置詞が現れる」**という一貫した挙動を実現できます。
+
+---
+
+## 1. 登山テンプレート
+
+山名と場所、時間をコンパクトにまとめます。
+
+* **入力項目案:**
+* 山名(`mountain`): 六甲山
+* 詳細(`area`): 芦屋・有馬
+* 時間(`time`): 2.5
+
+
+* **フォーマット設定:** `{mountain}{area}{time}`
+* **生成ロジック:**
+* `area` の `prefix/suffix`: `(` / `)`
+* `time` の `prefix/suffix`: `[` / `時間]`
+
+
+* **結果:** **`六甲山(芦屋・有馬)[2.5時間]`**
+
+```JSONB
+{
+  "style": { "icon": "Mountain", "color": "#16A34A" },
+  "config": { "result_format": "{mountain}{area}{time}" },
+  "fields": [
+    { "name": "mountain", "label": "山名", "type": "string", "placeholder": "山名", "prefix": "", "suffix": "", "hide_if_empty": true },
+    { "name": "area", "label": "詳細", "type": "string", "placeholder": "ルートなど", "prefix": "(", "suffix": ")", "hide_if_empty": true },
+    { "name": "time", "label": "所要時間", "type": "number", "subtype": "real", "placeholder": "時間", "prefix": "[", "suffix": "時間]", "hide_if_empty": true }
+  ]
+}
+```
+
+---
+
+## 2. ランニングテンプレート
+
+距離と時間を1行目に、場所とメモを2行目に分けるパターンです。
+
+* **入力項目案:**
+* 距離(`distance`): 3.3
+* 時間(`duration`): 30
+* 場所(`location`): 御堂筋
+* メモ(`memo`): 膝の調子が良い
+
+
+* **フォーマット設定:** `{distance}{duration}\n{location}{memo}`
+* **生成ロジック:**
+* `distance`: suffix=`Km`
+* `duration`: prefix=`[` / suffix=`分]`
+* `location`: prefix=`[` / suffix=`]`
+* `memo`: prefix=`memo:` / suffix=``
+
+
+* **結果:**
+**`3.3Km[30分]`**
+**`[御堂筋]memo:膝の調子が良い`**
+
+```JSONB
+{
+  style: { icon: "Run", color: "#3B82F6" },
+  config: { result_format: "{distance}{duration}\n{location}{memo}" },
+  fields: [
+    {
+      id: "f_dist",
+      name: "distance",
+      label: "距離",
+      type: "number",
+      width: "small",
+      placeholder: "0.0",
+      prefix: "",
+      suffix: "Km",
+      hide_if_empty: true,
+    },
+    {
+      id: "f_dur",
+      name: "duration",
+      label: "時間",
+      type: "number",
+      width: "small",
+      placeholder: "分",
+      prefix: "[",
+      suffix: "分]",
+      hide_if_empty: true,
+    },
+    {
+      id: "f_loc",
+      name: "location",
+      label: "場所",
+      type: "string",
+      width: "normal",
+      placeholder: "コース名",
+      prefix: "[",
+      suffix: "]",
+      hide_if_empty: true,
+    },
+    {
+      id: "f_memo",
+      name: "memo",
+      label: "メモ",
+      type: "text",
+      width: "big",
+      placeholder: "体調など",
+      prefix: "memo:",
+      suffix: "",
+      hide_if_empty: true,
+    },
+  ],
+}
+```
+
+
+---
+
+## 3. 外食テンプレート
+
+「誰と」「いくら」を柔軟に。人数が未入力でも崩れないようにします。
+
+* **入力項目案:**
+* 店名(`shop`): ケンタ
+* 場所(`location`): 南千里
+* 金額(`price`): 900
+* 人数(`people`): 1
+
+
+* **フォーマット設定:** `{shop}{location}\n{details}`
+* ※`details` は `price` と `people` を内包する特殊なグループとして扱うか、シンプルに `{shop}{location}\n{price}{people}` でも可。
+
+
+* **生成ロジック:**
+* `shop`: prefix=`店：`
+* `location`: prefix=`(` / suffix=`)`
+* `price`: prefix=`[` / suffix=`円`
+* `people`: prefix=`・` / suffix=`人]` （※入力がある時だけ「・」が出る）
+
+
+* **結果:**
+**`店：ケンタ(南千里)`**
+**`[900円・1人]`**
+
+
+```JSONB
+{
+  "style": { "icon": "Utensils", "color": "#EA580C" },
+  "config": { "result_format": "{shop}{location}\n{price_group}" },
+  "fields": [
+    { "name": "shop", "label": "店名", "type": "string", "placeholder": "店名", "prefix": "店：", "suffix": "", "hide_if_empty": true },
+    { "name": "location", "label": "場所", "type": "string", "placeholder": "エリア", "prefix": "(", "suffix": ")", "hide_if_empty": true },
+    { "name": "price_group", "label": "会計詳細", "type": "group", "prefix": "[", "suffix": "]", "hide_if_empty": true, "comment": "priceとpeopleをまとめる仮想グループ" },
+    { "name": "price", "label": "金額", "type": "number", "subtype": "integer", "placeholder": "金額", "prefix": "", "suffix": "円", "hide_if_empty": true },
+    { "name": "people", "label": "人数", "type": "number", "subtype": "integer", "placeholder": "人数", "prefix": "・", "suffix": "人", "hide_if_empty": true }
+  ]
+}
+```
+
+
+---
+
+## 4. 映画鑑賞テンプレート
+
+タイトルと評価を強調し、媒体（場所）を添えます。
+
+* **入力項目案:**
+* 作品名(`title`): 沈黙の艦隊
+* 場所(`media`): 難波
+* 評価(`rating`): 3.5
+
+
+* **フォーマット設定:** `{title}{media}{rating}`
+* **生成ロジック:**
+* `media`: prefix=`(` / suffix=`)`
+* `rating`: prefix=`[` / suffix=`点]`
+
+
+* **結果:** **`沈黙の艦隊(難波)[3.5点]`**
+
+```JSONB
+{
+  "style": { "icon": "Clapperboard", "color": "#E11D48" },
+  "config": { "result_format": "{title}{media}{rating}" },
+  "fields": [
+    { "name": "title", "label": "作品名", "type": "string", "placeholder": "タイトル", "prefix": "", "suffix": "", "hide_if_empty": true },
+    { "name": "media", "label": "場所/媒体", "type": "string", "placeholder": "映画館/配信名", "prefix": "(", "suffix": ")", "hide_if_empty": true },
+    { "name": "rating", "label": "評価", "type": "number", "subtype": "real", "placeholder": "0.0", "prefix": "[", "suffix": "点]", "hide_if_empty": true }
+  ]
+}
+```
+
+---
+
+## 実装のアドバイス：テンプレート処理の指針
+
+システムを構築する際は、以下の「合成ルール」を共通関数にすると、メンテナンスが楽になります。
+
+1. **フィールド合成関数**: `renderField(field, value)`
+* `value` が空（`""`, `null`, `undefined`）なら空文字を返す。
+* 値があるなら `field.prefix + value + field.suffix` を返す。
+
+
+2. **全体合成関数**: `renderTemplate(config, values)`
+* `config.result_format` 内の `{name}` を、上の関数で生成した文字列で置換する。
+* 最後に、**連続する改行や、中身が空になった行をトリミング**する処理を入れると、見た目が非常に綺麗になります。
+
+
+
+この構成で、実際にデータの保存や、画面でのプレビュー表示のロジックを作成していけそうでしょうか？もし特定の言語（TypeScriptなど）での実装サンプルが必要であれば、いつでもお伝えくださいね。
+
+
 ### 2. hadbit_trees (習慣項目階層管理)
 
 ツリー構造と並び順を管理します。今回の設計変更で **`user_id` が追加** されています。
@@ -251,9 +594,14 @@ src/
 | comment | TEXT | YES | 実施時のメモ |  |
 | updated_at | TIMESTAMP | NO | 最終更新日時 | 既定値: CURRENT_TIMESTAMP |
 | created_at | TIMESTAMP | NO | レコード作成日時 | 既定値: CURRENT_TIMESTAMP |
+| JSONB | TIMESTAMP | NO | レコード作成日時 | 既定値: CURRENT_TIMESTAMP |
+
+**JSONB** {"distance": 5.2, "unit": "km", "duration_sec": 1800}
 
 
----
+
+
+
 
 ### 構成のポイント
 
@@ -310,6 +658,18 @@ create table public.hadbit_logs (
 create index IF not exists idx_hadbit_logs_user_id on public.hadbit_logs using btree (user_id) TABLESPACE pg_default;
 
 create index IF not exists idx_hadbit_logs_item_id on public.hadbit_logs using btree (item_id) TABLESPACE pg_default;
+
+
+-- 1. detailsカラムの追加
+ALTER TABLE hadbit_logs 
+ADD COLUMN details JSONB;
+
+-- 2. (推奨) 既存レコードとの整合性が取れた後、検索を高速化したい場合に実行
+-- JSONBの場合、NULLが含まれていてもGINインデックスは作成可能です
+CREATE INDEX idx_hadbit_logs_details ON hadbit_logs USING GIN (details);
+
+-- 3. カラムの説明を追加
+COMMENT ON COLUMN hadbit_logs.details IS '実施記録の詳細（JSON形式）。既存データとの兼ね合いによりNULL許容。';
 
 
 ```
@@ -386,17 +746,21 @@ export default async function Page() {
 Supabaseの設定画面にある Transaction mode (ポート 6543) のURLを使ってください。Next.jsはサーバーレス環境（Vercelなど）で動くため、接続数が急増してもパンクしないようにするためです。
 
 # Todo
-- [ ] 習慣化の項目（hadbititem）に備考入れる　名前、短縮銘、説明の説明
-- [ ] 習慣化の項目（hadbititem）に対して、色を指定する（現行ランダム）
-- [ ] 習慣化の項目（hadbititem）にアイコンを付ける　Contentsに定義、候補はもつ
 - [ ] 習慣化の項目（hadbititem）、項目事に備考入れるテンプレート持てるように
   - （体重だとｘｘKgのｘｘ部分入れれるようにする）
 - [ ] データ(hadbitlog)に対してテンプレートベースで入力できること
 - [ ] サインアップ画面
+- [x] 習慣化の項目（hadbititem）に備考入れる　名前、短縮銘、説明の説明
+- [x] 習慣化の項目（hadbititem）に対して、色を指定する（現行ランダム）
+- [x] 習慣化の項目（hadbititem）にアイコンを付ける　Contentsに定義、候補はもつ
 - [x] スタートページ、ゲスト用画面
 
 
 # 履歴
+- 2026/2/12
+  - テンプレート機能実装。Logsに落とす情報構造化できるように
+- 2026/2/10
+  - V1,V2機能はカバー完了
 - 2026/2/8
   - おおむね完了かな
   - 第二ステップとしては、スタイル、テンプレートかな。

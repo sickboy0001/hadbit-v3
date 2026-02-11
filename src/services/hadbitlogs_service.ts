@@ -13,6 +13,7 @@ export type hadbitlog = {
   done_at: string;
   item_id: number;
   comment: string | null;
+  details?: string;
   category_id: number;
   category_name: string;
   category_short_name: string | null;
@@ -40,6 +41,7 @@ export async function getHadbitLogs(
         logs.done_at AS done_at,
         logs.item_id AS item_id,
         logs.comment,
+        logs.details,
         category.id AS category_id, 
         category.name AS category_name, 
         category.short_name AS category_short_name,
@@ -90,10 +92,12 @@ export async function updateHadbitLog(
   logId: number,
   doneAt: string,
   comment: string | null,
+  details?: string,
 ) {
   const commentVal = comment ? `'${comment}'` : "NULL";
+  const detailsVal = details ? `'${details}'` : "NULL";
   const query = `
-    UPDATE hadbit_logs SET done_at = '${doneAt}', comment = ${commentVal} WHERE id = ${logId} AND user_id = '${userId}'
+    UPDATE hadbit_logs SET done_at = '${doneAt}', comment = ${commentVal}, details = ${detailsVal} WHERE id = ${logId} AND user_id = '${userId}'
   `;
   return await executeQuery(query);
 }

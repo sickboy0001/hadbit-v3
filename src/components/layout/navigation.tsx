@@ -12,6 +12,7 @@ import {
   Menu,
   LogOut,
   LogIn,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const navItems = [
   { name: "Logs", href: "/hadbit/logs", icon: ClipboardList },
   { name: "Items", href: "/hadbit/items", icon: Settings },
   { name: "Analytics", href: "/hadbit/analytics", icon: PieChart },
+  { name: "Testing", href: "/testing", icon: FlaskConical },
 ];
 
 export function Sidebar() {

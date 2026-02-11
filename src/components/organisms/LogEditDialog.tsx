@@ -13,13 +13,22 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { hadbitlog } from "@/services/hadbitlogs_service";
 import { format, add } from "date-fns";
+import { getHadbitItem, ItemNode } from "@/services/hadbititems_service";
+import { LogTemplateDataInput } from "@/components/organisms/LogTemplateDataInput";
+import { Template } from "@/components/organisms/TemplateEditor";
+import { DateTimePicker } from "@/components/molecules/DateTimePicker";
 import { getSafeDate, toJST } from "@/lib/date-utils";
 
 interface LogEditDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   log: hadbitlog | null;
-  onSave: (logId: number, date: string, comment: string) => void;
+  onSave: (
+    logId: number,
+    date: string,
+    comment: string | null,
+    details?: string,
+  ) => void;
   onDelete: (logId: number) => void;
 }
 
@@ -32,31 +41,76 @@ export function LogEditDialog({
 }: LogEditDialogProps) {
   const [editDate, setEditDate] = useState("");
   const [editComment, setEditComment] = useState("");
+  const [editDetails, setEditDetails] = useState<Record<string, string>>({});
+  const [item, setItem] = useState<ItemNode | null>(null);
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [loadingItem, setLoadingItem] = useState(false);
 
   useEffect(() => {
-    if (log) {
+    if (log && isOpen) {
       // UTCとして解釈するために、末尾にZがない場合は付与する
       const date = toJST(getSafeDate(log.done_at));
       // datetime-local用にフォーマット (yyyy-MM-ddThh:mm)
       setEditDate(format(date, "yyyy-MM-dd'T'HH:mm"));
       setEditComment(log.comment || "");
+      setTemplate(null);
+      setEditDetails({});
+
+      // detailsのパース (log型定義にdetailsがない場合に備えてanyキャスト)
+      const logDetails = (log as any).details;
+      if (logDetails) {
+        try {
+          const parsed =
+            typeof logDetails === "string"
+              ? JSON.parse(logDetails)
+              : logDetails;
+          setEditDetails(parsed || {});
+        } catch (e) {}
+      }
+
+      const fetchItem = async () => {
+        setLoadingItem(true);
+        try {
+          const fetchedItem = await getHadbitItem(log.item_id);
+          setItem(fetchedItem);
+          if (fetchedItem?.item_style) {
+            try {
+              const parsed = JSON.parse(fetchedItem.item_style);
+              if (parsed?.fields?.length > 0) {
+                setTemplate(parsed);
+              }
+            } catch (e) {
+              console.error("Failed to parse item_style", e);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch item details", error);
+          setItem(null);
+        } finally {
+          setLoadingItem(false);
+        }
+      };
+      fetchItem();
+    } else {
+      setItem(null);
+      setTemplate(null);
+      setEditDetails({});
     }
   }, [log, isOpen]);
 
   const handleSave = () => {
     if (log) {
       const date = new Date(editDate);
+      const detailsJson = JSON.stringify(editDetails);
       // DB保存用に Z を除去して UTC 数値をそのまま送る
-      onSave(log.log_id, date.toISOString().replace("Z", ""), editComment);
+      onSave(
+        log.log_id,
+        date.toISOString().replace("Z", ""),
+        editComment,
+        detailsJson,
+      );
       onOpenChange(false);
     }
-  };
-
-  const adjustDate = (amount: number, unit: "hours" | "days") => {
-    if (!editDate) return;
-    const current = new Date(editDate);
-    const newDate = add(current, { [unit]: amount });
-    setEditDate(format(newDate, "yyyy-MM-dd'T'HH:mm"));
   };
 
   const handleDelete = () => {
@@ -77,78 +131,30 @@ export function LogEditDialog({
             <Label>項目名</Label>
             <div className="font-bold text-lg">{log?.master_name}</div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="date">日時</Label>
-            <Input
-              id="date"
-              type="datetime-local"
-              value={editDate}
-              onChange={(e) => setEditDate(e.target.value)}
-            />
-            <div className="grid grid-cols-6 gap-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => adjustDate(-1, "days")}
-                title="1日前"
-              >
-                -1d
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => adjustDate(-12, "hours")}
-                title="12時間前"
-              >
-                -12h
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => adjustDate(-1, "hours")}
-                title="1時間前"
-              >
-                -1h
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => adjustDate(1, "hours")}
-                title="1時間後"
-              >
-                +1h
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => adjustDate(12, "hours")}
-                title="12時間後"
-              >
-                +12h
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => adjustDate(1, "days")}
-                title="1日後"
-              >
-                +1d
-              </Button>
-            </div>
-          </div>
+          <DateTimePicker
+            id="date"
+            label="日時"
+            value={editDate}
+            onChange={setEditDate}
+          />
           <div className="grid gap-2">
             <Label htmlFor="comment">コメント</Label>
+            {template && !loadingItem && (
+              <LogTemplateDataInput
+                template={template}
+                initialValues={editDetails}
+                onPreviewChange={setEditComment}
+                onValuesChange={setEditDetails}
+                noPreview={true}
+              />
+            )}
             <Textarea
               id="comment"
               value={editComment}
               onChange={(e) => setEditComment(e.target.value)}
-              placeholder="メモを残せます"
+              placeholder={
+                template ? "テンプレートから自動生成" : "メモを残せます"
+              }
             />
           </div>
         </div>

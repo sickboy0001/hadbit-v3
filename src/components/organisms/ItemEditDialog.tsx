@@ -24,6 +24,7 @@ import * as LucideIcons from "lucide-react";
 import { IconSelector } from "@/components/molecules/IconSelector";
 import { ColorSelector } from "@/components/molecules/ColorSelector";
 import { HadbitItemButton } from "@/components/molecules/HadbitItemButton";
+import { TemplateEditor, Template } from "./TemplateEditor";
 
 export type ItemEditMode =
   | "createCategory"
@@ -44,6 +45,7 @@ interface ItemEditDialogProps {
     description: string;
     color: string;
     icon: string;
+    item_style?: string;
   };
   onSuccess: (data: any) => void;
 }
@@ -63,6 +65,11 @@ export function ItemEditDialog({
   const [description, setDescription] = useState("");
   const [color, setColor] = useState("");
   const [icon, setIcon] = useState("");
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
+  const [template, setTemplate] = useState<Template | undefined>(undefined);
+  const [editorInitialTemplate, setEditorInitialTemplate] = useState<
+    Template | undefined
+  >(undefined);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,15 +78,50 @@ export function ItemEditDialog({
       setDescription(initialValues.description || "");
       setColor(initialValues.color || "");
       setIcon(initialValues.icon || "");
+
+      if (initialValues.item_style) {
+        try {
+          const parsed = JSON.parse(initialValues.item_style);
+          const templateObj =
+            parsed && typeof parsed === "object" ? parsed : {};
+
+          // 必須プロパティの補完
+          if (!Array.isArray(templateObj.fields)) templateObj.fields = [];
+          if (!templateObj.config) templateObj.config = { result_format: "" };
+          if (!templateObj.style) templateObj.style = { icon: "", color: "" };
+
+          setTemplate(templateObj);
+          setEditorInitialTemplate(templateObj);
+          if (templateObj.fields.length > 0) {
+            setIsTemplateOpen(true);
+          } else {
+            setIsTemplateOpen(false);
+          }
+        } catch (e) {
+          console.warn("Failed to parse item_style", e);
+          setTemplate(undefined);
+          setEditorInitialTemplate(undefined);
+          setIsTemplateOpen(false);
+        }
+      } else {
+        setTemplate(undefined);
+        setEditorInitialTemplate(undefined);
+        setIsTemplateOpen(false);
+      }
     }
   }, [isOpen, initialValues]);
 
   const handleSave = async () => {
     try {
-      // item_style:{"style":{"icon":"ChartPie","color":"#008B02"}}
-      const item_style = JSON.stringify({
-        style: { icon: icon, color: color },
-      });
+      const currentTemplate: Template = template
+        ? { ...template }
+        : {
+            style: { icon: "", color: "" },
+            config: { result_format: "" },
+            fields: [],
+          };
+      currentTemplate.style = { icon: icon, color: color };
+      const item_style = JSON.stringify(currentTemplate);
 
       let res;
       if (mode === "createCategory") {
@@ -177,49 +219,50 @@ export function ItemEditDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
+          {/* <div>{initialValues?.name || "なし"}</div>{" "}
+          <div>{initialValues?.item_style || "なし"}</div>{" "} */}
           <DialogTitle>{getTitle()}</DialogTitle>
           <DialogDescription>{getDescription()}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              名称
-            </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="short_name" className="text-right">
-              表示名
-            </Label>
-            <Input
-              id="short_name"
-              value={shortName}
-              onChange={(e) => setShortName(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              説明
-            </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="col-span-3"
-              placeholder="詳細な説明を入力"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">スタイル</Label>
-            <div className="col-span-3">
+          <div className="grid grid-cols-6 items-start gap-4">
+            <div className="flex justify-end pt-2">
+              <Label htmlFor="name">名称</Label>
+            </div>
+            <div className="col-span-2">
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end pt-2">
+              <Label htmlFor="short_name">表示名</Label>
+            </div>
+            <div className="col-span-2">
+              <Input
+                id="short_name"
+                value={shortName}
+                onChange={(e) => setShortName(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end pt-2">
+              <Label htmlFor="description">説明</Label>
+            </div>
+            <div className="col-span-2">
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="詳細な説明を入力"
+              />
+            </div>
+            <div className="flex justify-end pt-2">
+              <Label>スタイル</Label>
+            </div>
+            <div className="col-span-2">
               <div className="flex items-center gap-4">
                 <HadbitItemButton icon={icon} text={shortName} color={color} />
                 <ColorSelector value={color} onChange={setColor} />
@@ -227,6 +270,36 @@ export function ItemEditDialog({
               </div>
             </div>
           </div>
+
+          {(mode === "createItem" || mode === "editItem") && (
+            <div className="border rounded-md overflow-hidden">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between p-3 px-4 font-medium hover:bg-muted/50 transition-colors text-sm"
+                onClick={() => setIsTemplateOpen(!isTemplateOpen)}
+              >
+                <span>入力テンプレート設定</span>
+                {isTemplateOpen ? (
+                  <LucideIcons.ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <LucideIcons.ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
+              {isTemplateOpen && (
+                <div className="p-4 border-t bg-slate-50/50">
+                  {/* <div>
+                    {editorInitialTemplate
+                      ? "テンプレートが設定されています"
+                      : "テンプレートが設定されていません"}
+                  </div> */}
+                  <TemplateEditor
+                    initialTemplate={editorInitialTemplate}
+                    onTemplateChange={setTemplate}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSave}>

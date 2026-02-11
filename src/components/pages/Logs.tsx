@@ -118,19 +118,28 @@ export default function Logs({ userId }: LogsProps) {
     logId: number,
     doneAt: string,
     comment: string | null,
+    details?: string,
   ) => {
-    await updateHadbitLog(userId, logId, doneAt, comment);
+    // @ts-ignore
+    await updateHadbitLog(userId, logId, doneAt, comment, details);
     setLogs((prev) =>
       prev.map((l) =>
-        l.log_id === logId ? { ...l, done_at: doneAt, comment: comment } : l,
+        l.log_id === logId
+          ? ({ ...l, done_at: doneAt, comment: comment, details } as any)
+          : l,
       ),
     );
     setLastUpdated(new Date());
     toast.success("記録を更新しました");
   };
 
-  const handleSaveLog = (logId: number, date: string, comment: string) => {
-    updateLog(logId, date, comment);
+  const handleSaveLog = (
+    logId: number,
+    date: string,
+    comment: string | null,
+    details?: string,
+  ) => {
+    updateLog(logId, date, comment, details);
   };
 
   const handleDeleteLog = (logId: number) => {
