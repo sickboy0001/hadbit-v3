@@ -230,32 +230,40 @@ export function LogHistory({
               shadcnのCardContentにはデフォルトで padding-top が設定されていることが多いためです。
             */}
               <div className="px-2 py-0">
-                {group.logs.map((log) => (
-                  <div
-                    key={log.log_id}
-                    className="px-3 py-0.5 text-sm group relative hover:bg-muted/50 transition-colors border-b last:border-0 cursor-pointer"
-                    onClick={() => onLogClick(log)}
-                  >
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="font-semibold truncate flex-1">
-                        <span className="text-muted-foreground font-normal mr-1 text-[10px]">
-                          [{log.category_name}]
-                        </span>
-                        {log.master_name}
-                        {log.comment && (
-                          <span className="text-muted-foreground font-normal ml-2 text-[10px]">
-                            {log.comment}
+                {group.logs.map((log) => {
+                  const d = (log as any).details;
+                  const hasDetail =
+                    d &&
+                    d !== "{}" &&
+                    (typeof d !== "object" || Object.keys(d).length > 0);
+                  return (
+                    <div
+                      key={log.log_id}
+                      className="px-3 py-0.5 text-sm group relative hover:bg-muted/50 transition-colors border-b last:border-0 cursor-pointer"
+                      onClick={() => onLogClick(log)}
+                    >
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="font-semibold truncate flex-1">
+                          <span className="text-muted-foreground font-normal mr-1 text-[10px]">
+                            [{log.category_name}]
                           </span>
-                        )}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                          {format(toJST(getSafeDate(log.done_at)), "HH:mm")}
+                          {log.master_name}
+                          {log.comment && (
+                            <span className="text-muted-foreground font-normal ml-2 text-[10px]">
+                              {hasDetail ? "+" : ""}
+                              {log.comment}
+                            </span>
+                          )}
                         </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {format(toJST(getSafeDate(log.done_at)), "HH:mm")}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           ))}

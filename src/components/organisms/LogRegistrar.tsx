@@ -8,10 +8,81 @@ import {
   getHadbitItems,
 } from "@/services/hadbititems_service";
 import { HadbitItemButton } from "@/components/molecules/HadbitItemButton";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface LogRegistrarProps {
   userId: string;
   onAddLog: (item: ItemNode) => void;
+}
+
+function CategoryCard({
+  category,
+  onAddLog,
+}: {
+  category: CategoryNode;
+  onAddLog: (item: ItemNode) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+  const storageKey = `hadbit_category_open_${category.id}`;
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved !== null) {
+      setIsOpen(saved === "true");
+    }
+  }, [storageKey]);
+
+  const toggleOpen = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    localStorage.setItem(storageKey, String(newState));
+  };
+
+  return (
+    <Card className="h-fit shadow-sm hover:shadow-md transition-shadow duration-200 p-1 md:p-2">
+      <CardHeader
+        className="p-3 cursor-pointer flex flex-row items-center justify-between space-y-0"
+        onClick={toggleOpen}
+      >
+        <CardTitle className="text-base font-semibold pl-2 border-l-4 border-primary/50">
+          {category.name}
+        </CardTitle>
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        )}
+      </CardHeader>
+      {isOpen && (
+        <CardContent className="flex flex-wrap gap-1 p-0.5 pt-0 md:gap-3 md:p-4 md:pt-0">
+          {category.items.map((item) => {
+            let iconName = "";
+            let colorValue = "";
+            try {
+              if (item.item_style) {
+                const parsed =
+                  typeof item.item_style === "string"
+                    ? JSON.parse(item.item_style)
+                    : item.item_style;
+                iconName = parsed?.style?.icon || parsed?.icon || "";
+                colorValue = parsed?.style?.color || parsed?.color || "";
+              }
+            } catch (e) {}
+            return (
+              <HadbitItemButton
+                key={item.id}
+                text={item.short_name || item.name}
+                icon={iconName}
+                color={colorValue}
+                onClick={() => onAddLog(item)}
+                className="h-auto  py-1.5 md:py-1 p-1 md:p-2 text-xs md:text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted group "
+              />
+            );
+          })}
+        </CardContent>
+      )}
+    </Card>
+  );
 }
 
 export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
@@ -55,44 +126,13 @@ export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
+    <div className="grid grid-cols-2 md:grid-cols-4 md:gap-4 gap-2 p-0.5 md:p-2">
       {categories.map((category) => (
-        <Card
+        <CategoryCard
           key={category.id}
-          className="h-fit shadow-sm hover:shadow-md transition-shadow duration-200 p-1 md:p-2"
-        >
-          <CardHeader className="p-3">
-            <CardTitle className="text-base font-semibold pl-2 border-l-4 border-primary/50">
-              {category.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-1 pt-0 md:gap-3 md:p-4 md:pt-0">
-            {category.items.map((item) => {
-              let iconName = "";
-              let colorValue = "";
-              try {
-                if (item.item_style) {
-                  const parsed =
-                    typeof item.item_style === "string"
-                      ? JSON.parse(item.item_style)
-                      : item.item_style;
-                  iconName = parsed?.style?.icon || parsed?.icon || "";
-                  colorValue = parsed?.style?.color || parsed?.color || "";
-                }
-              } catch (e) {}
-              return (
-                <HadbitItemButton
-                  key={item.id}
-                  text={item.short_name || item.name}
-                  icon={iconName}
-                  color={colorValue}
-                  onClick={() => onAddLog(item)}
-                  className="h-auto py-2 px-2 text-xs md:text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted group"
-                />
-              );
-            })}
-          </CardContent>
-        </Card>
+          category={category}
+          onAddLog={onAddLog}
+        />
       ))}
     </div>
   );

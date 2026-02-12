@@ -66,6 +66,11 @@ export function TemplateInputFields({
                 placeholder={f.placeholder}
                 value={values[f.name] || ""}
                 onChange={(e) => onChange(f.name, e.target.value)}
+                onFocus={() => {
+                  if (isNumeric) {
+                    setActiveCalc(f.name);
+                  }
+                }}
               />
               {isNumeric && (
                 <Popover

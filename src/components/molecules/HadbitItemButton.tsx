@@ -25,7 +25,7 @@ export function HadbitItemButton({
     <Button
       type="button"
       variant="outline"
-      className={cn("px-1 gap-0", className)}
+      className={cn("gap-0", className)}
       style={{
         color: color || undefined,
         borderColor: color || undefined,

@@ -69,17 +69,15 @@ export function HadbitItemRow({ item, onEdit, onDelete }: HadbitItemRowProps) {
               ) : null;
             })()}
           <div className="flex items-baseline gap-2">
+            {item.short_name && (
+              <div className="font-medium">{item.short_name}</div>
+            )}
             <div
-              className="font-medium"
+              className="text-xs text-muted-foreground"
               style={{ color: colorValue || undefined }}
             >
               {item.name}
             </div>
-            {item.short_name && (
-              <div className="text-xs text-muted-foreground">
-                {item.short_name}
-              </div>
-            )}
           </div>
         </div>
       </div>
