@@ -45,7 +45,8 @@
 
 
 * [Github](https://github.com/sickboy0001/hadbit-v3)
-* [Vercel](https://hadbit-v3.vercel.app/dashboard)
+* [デプロイ・Vercel](https://hadbit-v3.vercel.app/dashboard)
+* [デプロイ・netlify](https://fantastic-begonia-683a76.netlify.app/startPage)
 
 
 ## 🚀 プロジェクト概要
@@ -594,9 +595,10 @@ order by updated_at desc
 | comment | TEXT | YES | 実施時のメモ |  |
 | updated_at | TIMESTAMP | NO | 最終更新日時 | 既定値: CURRENT_TIMESTAMP |
 | created_at | TIMESTAMP | NO | レコード作成日時 | 既定値: CURRENT_TIMESTAMP |
-| JSONB | TIMESTAMP | NO | レコード作成日時 | 既定値: CURRENT_TIMESTAMP |
+| detail | JSONB | YES | 詳細な情報（JSON形式） |  |
 
-**JSONB** {"distance": 5.2, "unit": "km", "duration_sec": 1800}
+
+**detail** {"distance": 5.2, "unit": "km", "duration_sec": 1800}
 
 
 
@@ -758,7 +760,9 @@ Supabaseの設定画面にある Transaction mode (ポート 6543) のURLを使�
 
 
 # 履歴
-- 2026/2/12
+- 2026/2/14
+  - GoogleOAuth対応
+  -[デプロイ・netlify](https://fantastic-begonia-683a76.netlify.app/startPage)
   - LocalStorageの利用、デザイン調整
 - 2026/2/12
   - テンプレート機能実装。Logsに落とす情報構造化できるように
