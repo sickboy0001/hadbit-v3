@@ -760,6 +760,8 @@ Supabaseの設定画面にある Transaction mode (ポート 6543) のURLを使�
 
 
 # 履歴
+- 2026/2/16
+  - Logs レスポンシブルデザイン調整
 - 2026/2/14
   - GoogleOAuth対応
   -[デプロイ・netlify](https://fantastic-begonia-683a76.netlify.app/startPage)
