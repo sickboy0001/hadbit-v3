@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   CategoryNode,
   ItemNode,
@@ -39,22 +39,22 @@ function CategoryCard({
   };
 
   return (
-    <Card className="h-fit shadow-sm hover:shadow-md transition-shadow duration-200 p-1 md:p-2">
-      <CardHeader
-        className="p-3 cursor-pointer flex flex-row items-center justify-between space-y-0"
+    <Card className="h-fit shadow-sm hover:shadow-md transition-shadow duration-200 p-1 gap-3 md:p-2">
+      <div
+        className="px-3 pt-3 pb-1 cursor-pointer flex flex-row items-center justify-between"
         onClick={toggleOpen}
       >
-        <CardTitle className="text-base font-semibold pl-2 border-l-4 border-primary/50">
+        <div className="text-base font-semibold pl-2 border-l-4 border-primary/50">
           {category.name}
-        </CardTitle>
+        </div>
         {isOpen ? (
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         ) : (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
-      </CardHeader>
+      </div>
       {isOpen && (
-        <CardContent className="flex flex-wrap gap-1 p-0.5 pt-0 md:gap-3 md:p-4 md:pt-0">
+        <CardContent className="flex flex-wrap gap-2 p-2 md:gap-2 md:p-4 md:pt-0">
           {category.items.map((item) => {
             let iconName = "";
             let colorValue = "";
@@ -75,7 +75,7 @@ function CategoryCard({
                 icon={iconName}
                 color={colorValue}
                 onClick={() => onAddLog(item)}
-                className="h-auto  py-1.5 md:py-1 p-1 md:p-2 text-xs md:text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted group "
+                className="h-auto  py-1.5 md:py-1 p-2 md:p-2 text-sm md:text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted group "
               />
             );
           })}
@@ -107,7 +107,7 @@ export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="h-fit shadow-sm">
             <CardHeader className="p-3">
@@ -126,7 +126,7 @@ export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 md:gap-4 gap-2 p-0.5 md:p-2">
+    <div className="grid grid-cols-1 md:grid-cols-4 md:gap-4 gap-2 p-1 md:p-2">
       {categories.map((category) => (
         <CategoryCard
           key={category.id}

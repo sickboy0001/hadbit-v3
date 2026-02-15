@@ -216,7 +216,7 @@ export function LogHistory({
           {groupedLogs.map((group) => (
             <Card key={group.date} className="h-fit shadow-sm overflow-hidden">
               <div
-                className={`px-3 py-0.5 bg-muted/20 text-sm font-bold text-left border-b ${
+                className={`px-3 py-0.5 bg-muted/20 text-base font-bold text-left border-b ${
                   group.date.includes("土")
                     ? "text-blue-600"
                     : group.date.includes("日")
@@ -239,11 +239,11 @@ export function LogHistory({
                   return (
                     <div
                       key={log.log_id}
-                      className="px-3 py-0.5 text-sm group relative hover:bg-muted/50 transition-colors border-b last:border-0 cursor-pointer"
+                      className="px-3 py-1 text-sm group relative hover:bg-muted/50 transition-colors border-b last:border-0 cursor-pointer"
                       onClick={() => onLogClick(log)}
                     >
                       <div className="flex justify-between items-center gap-2">
-                        <span className="font-semibold truncate flex-1">
+                        <span className="font-semibold truncate flex-1 text-base">
                           <span className="text-muted-foreground font-normal mr-1 text-[10px]">
                             [{log.category_name}]
                           </span>
