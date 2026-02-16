@@ -80,7 +80,7 @@ export default async function Dashboard({ userId }: DashboardProps) {
             className="w-full h-24 flex flex-col gap-2 bg-card hover:border-primary hover:text-primary transition-all group"
           >
             <ClipboardList className="h-6 w-6 group-hover:scale-110 transition-transform" />
-            <span>実績登録</span>
+            <span>Logs-実績登録</span>
           </Button>
         </Link>
         <Link href="/hadbit/analytics">
@@ -89,7 +89,7 @@ export default async function Dashboard({ userId }: DashboardProps) {
             className="w-full h-24 flex flex-col gap-2 bg-card hover:border-primary hover:text-primary transition-all group"
           >
             <PieChart className="h-6 w-6 group-hover:scale-110 transition-transform" />
-            <span>分析表示</span>
+            <span>Analytics-分析表示</span>
           </Button>
         </Link>
         <Link href="/hadbit/items">
@@ -98,7 +98,7 @@ export default async function Dashboard({ userId }: DashboardProps) {
             className="w-full h-24 flex flex-col gap-2 bg-card hover:border-primary hover:text-primary transition-all group"
           >
             <Settings className="h-6 w-6 group-hover:scale-110 transition-transform" />
-            <span>項目管理</span>
+            <span>Items-項目管理</span>
           </Button>
         </Link>
       </div>
