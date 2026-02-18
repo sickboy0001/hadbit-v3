@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Items from "@/components/pages/Items";
 import LegacyDataConvert from "@/components/pages/LegacyDataConvert";
+import { redirect } from "next/navigation";
 
 export default async function ItemsPage() {
   const supabase = await createClient();
@@ -9,10 +10,8 @@ export default async function ItemsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    // ログインしていない場合の処理（リダイレクトなど）
-    return <div>Please login</div>;
-  }
+  if (!user) redirect("/login");
+
   if (!user.email) {
     return <div>Email is required for data conversion.</div>;
   }

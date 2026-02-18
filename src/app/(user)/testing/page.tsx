@@ -1,6 +1,7 @@
 // app/hadbit/items/page.tsx (Server Component)
 import { createClient } from "@/lib/supabase/server";
 import TemplateTester from "@/components/pages/TemplateTester";
+import { redirect } from "next/navigation";
 
 export default async function ItemsPage() {
   const supabase = await createClient();
@@ -8,10 +9,7 @@ export default async function ItemsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    // ログインしていない場合の処理（リダイレクトなど）
-    return <div>Please login</div>;
-  }
+  if (!user) redirect("/login");
 
   //  userId={user.id}
   return <TemplateTester userId={user.id} />;

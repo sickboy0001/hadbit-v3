@@ -30,18 +30,18 @@ export const SimpleCalculator = ({
   };
 
   return (
-    <div className="w-52 p-2">
+    <div className="w-60 p-2">
       <div className="mb-2 flex items-center gap-1">
-        <div className="flex-1 bg-slate-100 px-2 py-1 text-right text-base font-mono rounded h-9 overflow-hidden flex items-center justify-end">
+        <div className="flex-1 bg-slate-100 px-2 py-1 text-right text-lg font-mono rounded h-10 overflow-hidden flex items-center justify-end">
           {display}
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9"
+          className="h-10 w-10"
           onClick={onClose}
         >
-          <X size={16} />
+          <X size={18} />
         </Button>
       </div>
       <div className="grid grid-cols-3 gap-1">
@@ -50,7 +50,7 @@ export const SimpleCalculator = ({
             key={k}
             variant="outline"
             size="sm"
-            className="h-9 p-0 text-base"
+            className="h-10 p-0 text-lg"
             onClick={() => handlePush(k)}
           >
             {k}
@@ -61,7 +61,7 @@ export const SimpleCalculator = ({
             key={k}
             variant="outline"
             size="sm"
-            className="h-9 p-0 text-base"
+            className="h-10 p-0 text-lg"
             onClick={() => handlePush(k)}
           >
             {k}
@@ -72,7 +72,7 @@ export const SimpleCalculator = ({
             key={k}
             variant="outline"
             size="sm"
-            className="h-9 p-0 text-base"
+            className="h-10 p-0 text-lg"
             onClick={() => handlePush(k)}
           >
             {k}
@@ -81,7 +81,7 @@ export const SimpleCalculator = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 p-0 text-red-500 text-base"
+          className="h-10 p-0 text-red-500 text-lg"
           onClick={handleClear}
         >
           C
@@ -89,7 +89,7 @@ export const SimpleCalculator = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 p-0 text-base"
+          className="h-10 p-0 text-lg"
           onClick={() => handlePush("0")}
         >
           0
@@ -97,7 +97,7 @@ export const SimpleCalculator = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 p-0 text-base"
+          className="h-10 p-0 text-lg"
           onClick={() => handlePush(".")}
         >
           .
