@@ -142,11 +142,12 @@ export function LogEditDialog({
           <div className="grid gap-2">
             <Label htmlFor="comment">コメント</Label>
             {loadingItem && (
-              <div className="space-y-2 py-1">
+              <div className="space-y-2 py-1 ">
                 <div className="h-8 w-full bg-muted/50 animate-pulse rounded" />
                 <div className="h-8 w-3/4 bg-muted/50 animate-pulse rounded" />
               </div>
             )}
+            {/* テンプレート入力 */}
             {!loadingItem && template && (
               <LogTemplateDataInput
                 template={template}
@@ -156,6 +157,7 @@ export function LogEditDialog({
                 noPreview={true}
               />
             )}
+            {/* コメント入力 */}
             <Textarea
               id="comment"
               value={editComment}
@@ -163,6 +165,7 @@ export function LogEditDialog({
               placeholder={
                 template ? "テンプレートから自動生成" : "メモを残せます"
               }
+              className="text-lg"
             />
           </div>
         </div>

@@ -236,6 +236,12 @@ export function LogHistory({
                     d &&
                     d !== "{}" &&
                     (typeof d !== "object" || Object.keys(d).length > 0);
+
+                  const logDate = toJST(getSafeDate(log.done_at));
+                  const now = new Date();
+                  const isNew =
+                    now.getTime() - logDate.getTime() < 3 * 60 * 60 * 1000;
+
                   return (
                     <div
                       key={log.log_id}
@@ -244,10 +250,18 @@ export function LogHistory({
                     >
                       <div className="flex justify-between items-center gap-2">
                         <span className="font-semibold truncate flex-1 text-base">
+                          {/* 種別銘 */}
                           <span className="text-muted-foreground font-normal mr-1 text-[10px]">
                             [{log.category_name}]
                           </span>
+                          {/* 項目名 */}
                           {log.master_name}
+                          {isNew && (
+                            <span className="ml-2 text-[10px] font-bold bg-red-500 text-white px-1.5 rounded-full">
+                              new
+                            </span>
+                          )}
+                          {/* コメント */}
                           {log.comment && (
                             <span className="text-muted-foreground font-normal ml-2 text-[10px]">
                               {hasDetail ? "+" : ""}
@@ -256,6 +270,7 @@ export function LogHistory({
                           )}
                         </span>
                         <div className="flex items-center gap-1">
+                          {/* 時間 */}
                           <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                             {format(toJST(getSafeDate(log.done_at)), "HH:mm")}
                           </span>

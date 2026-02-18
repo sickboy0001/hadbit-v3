@@ -61,7 +61,7 @@ export function TemplateInputFields({
             )}
             <div className="relative">
               <Input
-                className={`h-8 text-[12px] px-2 ${isNumeric ? "pr-7" : ""}`}
+                className={`h-auto text-[17px] px-2 py-1 ${isNumeric ? "pr-7" : ""}`}
                 style={widthStyle}
                 placeholder={f.placeholder}
                 value={values[f.name] || ""}
