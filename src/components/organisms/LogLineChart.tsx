@@ -213,6 +213,7 @@ export function LogLineChart({
                   dataKey="value"
                   name="記録値"
                   stroke="#8884d8"
+                  dot={false}
                   activeDot={{ r: 8 }}
                   connectNulls
                 />
