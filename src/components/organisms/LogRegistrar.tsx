@@ -134,6 +134,7 @@ export function LogRegistrar({ userId, onAddLog }: LogRegistrarProps) {
                       icon={iconName}
                       color={colorValue}
                       onClick={() => onAddLog(item)}
+                      highlightDuration={1000}
                       className="h-auto py-1.5 px-3 text-sm font-medium bg-background hover:border-primary hover:text-primary active:scale-95 transition-all shadow-sm border-muted"
                     />
                   );

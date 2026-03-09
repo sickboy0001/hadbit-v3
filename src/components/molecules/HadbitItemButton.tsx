@@ -11,6 +11,7 @@ interface HadbitItemButtonProps {
   color?: string;
   onClick?: () => void;
   className?: string;
+  highlightDuration?: number;
 }
 
 export function HadbitItemButton({
@@ -19,6 +20,7 @@ export function HadbitItemButton({
   color,
   onClick,
   className,
+  highlightDuration = 1000,
 }: HadbitItemButtonProps) {
   const [isClicked, setIsClicked] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,11 +38,11 @@ export function HadbitItemButton({
       onClick();
     }
 
-    // 1秒後に状態を戻す
+    // 指定時間後に状態を戻す
     timeoutRef.current = setTimeout(() => {
       setIsClicked(false);
       timeoutRef.current = null;
-    }, 1000);
+    }, highlightDuration);
   };
 
   return (
